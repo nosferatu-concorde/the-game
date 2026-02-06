@@ -12,5 +12,8 @@ export const LEVEL_1 = {
   ],
   spinPlatform: { x: 640, y: 80, w: 200 },
   goal: { x: 640, y: 40, w: 60, h: 60 },
+  saws: [
+    { x: 500, y: 450, w: 200, speed: 0.15, padding: 20 },
+  ],
   playerSpawn: { x: 640, y: 600 },
 };

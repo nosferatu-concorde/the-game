@@ -8,9 +8,10 @@ const BLINK_DURATION = 600; // ms of blinking before fully hidden
 const BLINK_INTERVAL = 100; // ms per blink toggle
 
 export class SpeechBubble {
-  constructor(scene, target, text = '') {
+  constructor(scene, target, text = '', { minWidth = 0 } = {}) {
     this.scene = scene;
     this.target = target;
+    this.minWidth = minWidth;
 
     this.text = scene.add.text(0, 0, text, {
       fontFamily: 'monospace',
@@ -65,7 +66,7 @@ export class SpeechBubble {
   }
 
   _redraw() {
-    const w = this.text.width + PADDING * 2;
+    const w = Math.max(this.text.width + PADDING * 2, this.minWidth);
     const h = this.text.height + PADDING * 2;
 
     this.bg.clear();
@@ -123,7 +124,7 @@ export class SpeechBubble {
   }
 
   getBounds() {
-    const w = this.text.width + PADDING * 2;
+    const w = Math.max(this.text.width + PADDING * 2, this.minWidth);
     const h = this.text.height + PADDING * 2;
     return {
       left: this.bg.x - w / 2,

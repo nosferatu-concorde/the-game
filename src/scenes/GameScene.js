@@ -10,6 +10,7 @@ import {
 } from "../constants/config.js";
 import { COLORS, STROKE_WIDTH } from "../constants/styles.js";
 import { LEVEL_1 } from "../constants/levels.js";
+import { SpeechBubble } from "../ui/SpeechBubble.js";
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -35,7 +36,9 @@ export class GameScene extends Phaser.Scene {
 
     // Platforms (drop-through)
     const platforms = this.physics.add.staticGroup();
-    for (const p of LEVEL_1.platforms) {
+    this.platBubbles = [];
+    for (let i = 0; i < LEVEL_1.platforms.length; i++) {
+      const p = LEVEL_1.platforms[i];
       const plat = this.add.rectangle(
         p.x,
         p.y,
@@ -45,7 +48,11 @@ export class GameScene extends Phaser.Scene {
       );
       plat.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
       platforms.add(plat);
+      const bubble = new SpeechBubble(this, plat, "", { minWidth: p.w });
+      this.platBubbles.push(bubble);
     }
+    this.currentPlatBubble = 0;
+    this.platBubbles[0].setText("console.log(PLATFORM)");
 
     // Spinning platform (solid, not drop-through)
     const sp = LEVEL_1.spinPlatform;
@@ -113,6 +120,40 @@ export class GameScene extends Phaser.Scene {
       }
     });
 
+    // Circular saws (move in rectangle around platform)
+    this.saws = LEVEL_1.saws.map((s) => {
+      const pad = s.padding;
+      const hw = s.w / 2 + pad;
+      const hh = PLATFORM_HEIGHT / 2 + pad;
+      const rectW = hw * 2;
+      const rectH = hh * 2;
+      const perimeter = (rectW + rectH) * 2;
+
+      const saw = this.add.circle(s.x - hw, s.y - hh, 14, COLORS.ENEMY_FILL);
+      saw.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
+      this.physics.add.existing(saw, false);
+      saw.body.setAllowGravity(false);
+      saw.body.setCircle(14);
+      const bubble = new SpeechBubble(this, saw, "while(true)\n  keep_going()");
+      this.physics.add.overlap(this.player.sprite, saw, () => {
+        this.scene.restart();
+      });
+      return {
+        sprite: saw,
+        bubble,
+        bubbleCooldown: 0,
+        dist: 0,
+        cx: s.x,
+        cy: s.y,
+        hw,
+        hh,
+        rectW,
+        rectH,
+        perimeter,
+        speed: s.speed,
+      };
+    });
+
     // Store platforms for bubble collision checking
     this.platformGroup = platforms;
 
@@ -129,17 +170,25 @@ export class GameScene extends Phaser.Scene {
         enemy.onPlayerContact();
         this.scene.restart();
       });
+    }
+
+    // All speech bubbles are standable (top-only, with carry)
+    this.allBubbles = [
+      this.player.bubble,
+      ...this.platBubbles,
+      ...this.enemies.map((e) => e.bubble),
+      ...this.saws.map((s) => s.bubble),
+    ];
+    for (const bubble of this.allBubbles) {
       this.physics.add.collider(
         this.player.sprite,
-        enemy.bubble.collider,
+        bubble.collider,
         () => {
-          // Carry player along with the moving bubble
-          this.player.sprite.x += enemy.bubble.deltaX;
+          this.player.sprite.x += bubble.deltaX;
         },
         () => {
-          // Only collide when player is above the bubble (landing on top)
           const playerBottom = this.player.sprite.body.bottom;
-          const bubbleTop = enemy.bubble.collider.body.top;
+          const bubbleTop = bubble.collider.body.top;
           return this.player.sprite.body.velocity.y >= 0 && playerBottom <= bubbleTop + 8;
         },
       );
@@ -158,9 +207,53 @@ export class GameScene extends Phaser.Scene {
       enemy.update(delta);
     }
 
+    // Platform speech bubble chain (loops)
+    const current = this.platBubbles[this.currentPlatBubble];
+    current.update(delta);
+    if (!current.visible && !current.blinking) {
+      this.currentPlatBubble = (this.currentPlatBubble + 1) % this.platBubbles.length;
+      this.platBubbles[this.currentPlatBubble].setText("console.log(PLATFORM)");
+    }
+
     // Slight screen shake while any enemy is chasing
     if (anyChasing) {
       this.cameras.main.shake(100, 0.002, false);
+    }
+
+    // Update saws (rectangular path around platform)
+    for (const saw of this.saws) {
+      saw.dist = (saw.dist + saw.speed * delta) % saw.perimeter;
+      const d = saw.dist;
+      let x, y;
+      if (d < saw.rectW) {
+        // Top edge: left to right
+        x = saw.cx - saw.hw + d;
+        y = saw.cy - saw.hh;
+      } else if (d < saw.rectW + saw.rectH) {
+        // Right edge: top to bottom
+        x = saw.cx + saw.hw;
+        y = saw.cy - saw.hh + (d - saw.rectW);
+      } else if (d < saw.rectW * 2 + saw.rectH) {
+        // Bottom edge: right to left
+        x = saw.cx + saw.hw - (d - saw.rectW - saw.rectH);
+        y = saw.cy + saw.hh;
+      } else {
+        // Left edge: bottom to top
+        x = saw.cx - saw.hw;
+        y = saw.cy + saw.hh - (d - saw.rectW * 2 - saw.rectH);
+      }
+      saw.sprite.x = x;
+      saw.sprite.y = y;
+      saw.sprite.body.reset(x, y);
+      saw.sprite.rotation += 0.01 * delta;
+      if (!saw.bubble.visible) {
+        saw.bubbleCooldown -= delta;
+        if (saw.bubbleCooldown <= 0) {
+          saw.bubble.setText("while(true)\n  keep_going()");
+          saw.bubbleCooldown = 2000;
+        }
+      }
+      saw.bubble.update(delta);
     }
 
     // Push bubbles out of platforms
