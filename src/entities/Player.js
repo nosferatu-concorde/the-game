@@ -22,7 +22,7 @@ export class Player {
     this.idleAnimTimer = 0;
     this.idleFrame = 0;
 
-    this.sprite = scene.add.rectangle(x, y, WIDTH, HEIGHT, COLORS.FILL);
+    this.sprite = scene.add.rectangle(x, y, WIDTH, HEIGHT, COLORS.STROKE);
     this.sprite.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
     scene.physics.add.existing(this.sprite);
     this.sprite.body.setCollideWorldBounds(true);

@@ -17,7 +17,17 @@ export class GameScene extends Phaser.Scene {
     super("GameScene");
   }
 
+  preload() {
+    this.load.image("goal", "goal.png");
+  }
+
   create() {
+    this.isDead = false;
+    this.goalReached = false;
+    this.goalLanded = false;
+    this.spinActivated = false;
+    this.wasGrounded = false;
+
     this.cameras.main.setPostPipeline("CRTPipeline");
 
     // White background (needed for PostFX pipeline)
@@ -59,12 +69,11 @@ export class GameScene extends Phaser.Scene {
     this.spinPlat = this.add.rectangle(sp.x, sp.y, sp.w, PLATFORM_HEIGHT, COLORS.FILL);
     this.spinPlat.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
     this.physics.add.existing(this.spinPlat, true);
-    this.spinActivated = false;
 
     // Goal sits on spinning platform (dynamic but frozen until spin)
     const g = LEVEL_1.goal;
-    this.goalObj = this.add.rectangle(g.x, g.y, g.w, g.h, COLORS.GOAL_FILL);
-    this.goalObj.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
+    this.goalObj = this.add.sprite(g.x, g.y, "goal");
+    this.goalObj.setDisplaySize(g.w, g.h);
     this.physics.add.existing(this.goalObj, false);
     this.goalObj.body.setAllowGravity(false);
     this.goalObj.body.setImmovable(true);
@@ -102,7 +111,6 @@ export class GameScene extends Phaser.Scene {
     });
 
     // Goal collides with ground and platforms when it falls
-    this.goalLanded = false;
     const goalLanded = () => {
       if (this.spinActivated && !this.goalLanded) {
         this.goalLanded = true;
@@ -136,7 +144,7 @@ export class GameScene extends Phaser.Scene {
       saw.body.setCircle(14);
       const bubble = new SpeechBubble(this, saw, "while(true)\n  keep_going()");
       this.physics.add.overlap(this.player.sprite, saw, () => {
-        this.scene.restart();
+        this._playerDie();
       });
       return {
         sprite: saw,
@@ -168,7 +176,7 @@ export class GameScene extends Phaser.Scene {
       this.physics.add.collider(enemy.sprite, platforms);
       this.physics.add.overlap(this.player.sprite, enemy.sprite, () => {
         enemy.onPlayerContact();
-        this.scene.restart();
+        this._playerDie();
       });
     }
 
@@ -266,6 +274,28 @@ export class GameScene extends Phaser.Scene {
     for (const enemy of this.enemies) {
       this._clampBubble(enemy.bubble);
     }
+  }
+
+  _playerDie() {
+    if (this.isDead) return;
+    this.isDead = true;
+    this.physics.pause();
+
+    const overlay = this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, 0x000000);
+    overlay.setDepth(99);
+
+    const deathText = this.add.text(CENTER_X, CENTER_Y, "IF DEAD DEAD", {
+      fontFamily: "monospace",
+      fontSize: "120px",
+      color: "#ffffff",
+      fontStyle: "bold",
+    });
+    deathText.setOrigin(0.5);
+    deathText.setDepth(100);
+
+    this.time.delayedCall(200, () => {
+      this.scene.restart();
+    });
   }
 
   _activateSpinPlatform() {
