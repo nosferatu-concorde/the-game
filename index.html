@@ -12,10 +12,29 @@
         align-items: center;
         min-height: 100vh;
         background: #000;
+        position: relative;
+      }
+      #vignette {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(
+          ellipse at center,
+          transparent 20%,
+          rgba(0, 0, 0, 0.4) 100%
+        );
+        pointer-events: none;
+        z-index: 10;
+      }
+      canvas {
+        border-radius: 10px;
       }
     </style>
   </head>
   <body>
+    <div id="vignette"></div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

@@ -6,6 +6,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   create() {
+    this.cameras.main.setPostPipeline('CRTPipeline');
+
+    // White background (needed for PostFX pipeline)
+    this.add.rectangle(640, 360, 1280, 720, 0xffffff);
+
     // Ground (always solid)
     const ground = this.add.rectangle(640, 710, 1280, 20, 0xffffff);
     ground.setStrokeStyle(2, 0x000000);
