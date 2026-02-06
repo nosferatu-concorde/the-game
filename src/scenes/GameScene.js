@@ -47,16 +47,20 @@ export class GameScene extends Phaser.Scene {
       platforms.add(plat);
     }
 
-    // Goal area
-    const goal = this.add.rectangle(
-      LEVEL_1.goal.x,
-      LEVEL_1.goal.y,
-      LEVEL_1.goal.w,
-      LEVEL_1.goal.h,
-      COLORS.GOAL_FILL,
-    );
-    goal.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
-    this.physics.add.existing(goal, true);
+    // Spinning platform (solid, not drop-through)
+    const sp = LEVEL_1.spinPlatform;
+    this.spinPlat = this.add.rectangle(sp.x, sp.y, sp.w, PLATFORM_HEIGHT, COLORS.FILL);
+    this.spinPlat.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
+    this.physics.add.existing(this.spinPlat, true);
+    this.spinActivated = false;
+
+    // Goal sits on spinning platform (dynamic but frozen until spin)
+    const g = LEVEL_1.goal;
+    this.goalObj = this.add.rectangle(g.x, g.y, g.w, g.h, COLORS.GOAL_FILL);
+    this.goalObj.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
+    this.physics.add.existing(this.goalObj, false);
+    this.goalObj.body.setAllowGravity(false);
+    this.goalObj.body.setImmovable(true);
 
     this.player = new Player(
       this,
@@ -83,8 +87,26 @@ export class GameScene extends Phaser.Scene {
       },
     );
 
-    // Goal overlap
-    this.physics.add.overlap(this.player.sprite, goal, () => {
+    // Player bumps spinning platform from below
+    this.physics.add.collider(this.player.sprite, this.spinPlat, () => {
+      if (this.player.sprite.body.velocity.y < 0 && !this.spinActivated) {
+        this._activateSpinPlatform();
+      }
+    });
+
+    // Goal collides with ground and platforms when it falls
+    this.goalLanded = false;
+    const goalLanded = () => {
+      if (this.spinActivated && !this.goalLanded) {
+        this.goalLanded = true;
+        this.cameras.main.shake(300, 0.006, false);
+      }
+    };
+    this.physics.add.collider(this.goalObj, ground, goalLanded);
+    this.physics.add.collider(this.goalObj, platforms, goalLanded);
+
+    // Goal overlap with player
+    this.physics.add.overlap(this.player.sprite, this.goalObj, () => {
       if (!this.goalReached) {
         this.goalReached = true;
         this.player.bubble.setText("LEVEL\nCOMPLETE!");
@@ -142,7 +164,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Push bubbles out of platforms
-    const playerBubbleHit = this._clampBubble(this.player.bubble);
+    const playerBubbleHit = this._clampBubble(this.player.bubble, true);
     if (playerBubbleHit && this.player.sprite.body.velocity.y < 0) {
       this.player.sprite.body.velocity.y = 0;
       this.player.sprite.y += playerBubbleHit;
@@ -153,9 +175,44 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  _clampBubble(bubble) {
+  _activateSpinPlatform() {
+    this.spinActivated = true;
+    this.cameras.main.shake(300, 0.006, false);
+
+    // Disable platform collision
+    this.spinPlat.body.enable = false;
+
+    // Spin the platform visual
+    this.tweens.add({
+      targets: this.spinPlat,
+      rotation: Math.PI * 4,
+      duration: 2000,
+      ease: "Cubic.easeOut",
+    });
+
+    // Release the goal — let it fall
+    this.goalObj.body.setAllowGravity(true);
+    this.goalObj.body.setImmovable(false);
+  }
+
+  _clampBubble(bubble, triggerSpin = false) {
     if (!bubble.visible) return 0;
     const b = bubble.getBounds();
+
+    // Check spinning platform
+    if (!this.spinActivated && this.spinPlat.body.enable) {
+      const p = this.spinPlat.body;
+      if (b.right > p.left && b.left < p.right && b.top < p.bottom && b.bottom > p.top) {
+        const offset = p.bottom - b.top;
+        bubble.applyOffset(0, offset);
+        if (triggerSpin) {
+          this._activateSpinPlatform();
+        }
+        return offset;
+      }
+    }
+
+    // Check regular platforms
     for (const plat of this.platformGroup.getChildren()) {
       const p = plat.body;
       if (b.right > p.left && b.left < p.right && b.top < p.bottom && b.bottom > p.top) {

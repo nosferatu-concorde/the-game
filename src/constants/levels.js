@@ -10,6 +10,7 @@ export const LEVEL_1 = {
     { x: 300, y: 680, patrolMin: 100, patrolMax: 500 },
     { x: 1000, y: 680, patrolMin: 780, patrolMax: 1180 },
   ],
-  goal: { x: 900, y: 310, w: 60, h: 60 },
+  spinPlatform: { x: 640, y: 80, w: 200 },
+  goal: { x: 640, y: 40, w: 60, h: 60 },
   playerSpawn: { x: 640, y: 600 },
 };
