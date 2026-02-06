@@ -1,5 +1,8 @@
 import { Player } from '../entities/Player.js';
 import { Enemy } from '../entities/Enemy.js';
+import { GAME_WIDTH, GAME_HEIGHT, CENTER_X, CENTER_Y, GROUND_Y, PLATFORM_HEIGHT } from '../constants/config.js';
+import { COLORS, STROKE_WIDTH } from '../constants/styles.js';
+import { LEVEL_1 } from '../constants/levels.js';
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -10,35 +13,27 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.setPostPipeline('CRTPipeline');
 
     // White background (needed for PostFX pipeline)
-    this.add.rectangle(640, 360, 1280, 720, 0xffffff);
+    this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, COLORS.BG);
 
     // Ground (always solid)
-    const ground = this.add.rectangle(640, 710, 1280, 20, 0xffffff);
-    ground.setStrokeStyle(2, 0x000000);
+    const ground = this.add.rectangle(CENTER_X, GROUND_Y, GAME_WIDTH, PLATFORM_HEIGHT, COLORS.FILL);
+    ground.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
     this.physics.add.existing(ground, true);
 
     // Platforms (drop-through)
     const platforms = this.physics.add.staticGroup();
-    const platformData = [
-      { x: 200, y: 550, w: 100 },
-      { x: 500, y: 450, w: 200 },
-      { x: 900, y: 350, w: 400 },
-      { x: 300, y: 300, w: 200 },
-      { x: 1050, y: 550, w: 100 },
-    ];
-
-    for (const p of platformData) {
-      const plat = this.add.rectangle(p.x, p.y, p.w, 20, 0xffffff);
-      plat.setStrokeStyle(2, 0x000000);
+    for (const p of LEVEL_1.platforms) {
+      const plat = this.add.rectangle(p.x, p.y, p.w, PLATFORM_HEIGHT, COLORS.FILL);
+      plat.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
       platforms.add(plat);
     }
 
-    this.player = new Player(this, 640, 600);
+    this.player = new Player(this, LEVEL_1.playerSpawn.x, LEVEL_1.playerSpawn.y);
 
-    // Enemy patrolling on the ground
-    this.enemies = [
-      new Enemy(this, 300, 680, 100, 500),
-    ];
+    // Enemies
+    this.enemies = LEVEL_1.enemies.map(
+      (e) => new Enemy(this, e.x, e.y, e.patrolMin, e.patrolMax)
+    );
 
     this.physics.add.collider(this.player.sprite, ground);
     this.physics.add.collider(this.player.sprite, platforms, null, () => {

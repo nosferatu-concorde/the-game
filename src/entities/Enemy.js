@@ -1,13 +1,10 @@
 import { SpeechBubble } from '../ui/SpeechBubble.js';
+import { COLORS, STROKE_WIDTH } from '../constants/styles.js';
 
 const WIDTH = 32;
 const HEIGHT = 32;
 const PATROL_SPEED = 100;
 const CHASE_SPEED = 160;
-const STROKE_WIDTH = 2;
-const FILL_COLOR = 0xff0000;
-const STROKE_COLOR = 0x000000;
-const INDICATOR_SIZE = 6;
 const Y_TOLERANCE = 20; // max vertical difference to count as "same level"
 
 export class Enemy {
@@ -20,14 +17,19 @@ export class Enemy {
     this.chasing = false;
     this.touching = false;
 
-    this.sprite = scene.add.rectangle(x, y, WIDTH, HEIGHT, FILL_COLOR);
-    this.sprite.setStrokeStyle(STROKE_WIDTH, STROKE_COLOR);
+    this.sprite = scene.add.rectangle(x, y, WIDTH, HEIGHT, COLORS.ENEMY_FILL);
+    this.sprite.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
     scene.physics.add.existing(this.sprite);
     this.sprite.body.setCollideWorldBounds(true);
     this.sprite.body.setVelocityX(PATROL_SPEED);
 
-    // Direction indicator triangle
-    this.indicator = scene.add.triangle(0, 0, 0, 0, INDICATOR_SIZE * 2, INDICATOR_SIZE, 0, INDICATOR_SIZE * 2, STROKE_COLOR);
+    // Direction indicator text
+    this.indicator = scene.add.text(x, y, '>', {
+      fontFamily: 'monospace',
+      fontSize: '20px',
+      color: '#ffffff',
+      fontStyle: 'bold',
+    });
     this.indicator.setOrigin(0.5, 0.5);
 
     this.bubble = new SpeechBubble(scene, this.sprite, this._getBubbleText());
@@ -66,10 +68,8 @@ export class Enemy {
   }
 
   _updateIndicator() {
-    const offsetX = this.direction === 'right' ? WIDTH / 2 + INDICATOR_SIZE + 2 : -(WIDTH / 2 + INDICATOR_SIZE + 2);
-    this.indicator.setPosition(this.sprite.x + offsetX, this.sprite.y);
-    // Point triangle in movement direction
-    this.indicator.setAngle(this.direction === 'right' ? 90 : -90);
+    this.indicator.setPosition(this.sprite.x, this.sprite.y);
+    this.indicator.setText(this.direction === 'right' ? '>' : '<');
   }
 
   update(delta) {

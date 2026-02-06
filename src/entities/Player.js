@@ -1,18 +1,16 @@
 import Phaser from "phaser";
 import { SpeechBubble } from "../ui/SpeechBubble.js";
+import { COLORS, STROKE_WIDTH } from "../constants/styles.js";
 
 const WIDTH = 32;
 const HEIGHT = 48;
 const MOVE_SPEED = 360;
 const JUMP_VELOCITY = -700;
-const STROKE_WIDTH = 2;
 const COYOTE_TIME = 100; // ms after leaving ground where jump is still allowed
 const IDLE_DELAY = 1000; // ms before idle starts
 const IDLE_FRAME_DURATION = 400; // ms per frame
 const SQUISH_WIDTH = WIDTH + 2;
 const SQUISH_HEIGHT = HEIGHT - 4;
-const FILL_COLOR = 0xffffff;
-const STROKE_COLOR = 0x000000;
 
 export class Player {
   constructor(scene, x, y) {
@@ -24,8 +22,8 @@ export class Player {
     this.idleAnimTimer = 0;
     this.idleFrame = 0;
 
-    this.sprite = scene.add.rectangle(x, y, WIDTH, HEIGHT, FILL_COLOR);
-    this.sprite.setStrokeStyle(STROKE_WIDTH, STROKE_COLOR);
+    this.sprite = scene.add.rectangle(x, y, WIDTH, HEIGHT, COLORS.FILL);
+    this.sprite.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
     scene.physics.add.existing(this.sprite);
     this.sprite.body.setCollideWorldBounds(true);
 

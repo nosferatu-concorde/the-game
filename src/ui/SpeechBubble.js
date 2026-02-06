@@ -1,12 +1,11 @@
+import { COLORS, STROKE_WIDTH } from '../constants/styles.js';
+
 const PADDING = 12;
 const TAIL_SIZE = 8;
 const FONT_SIZE = 14;
-const STROKE_WIDTH = 2;
 const DISPLAY_DURATION = 2000; // ms before blink starts
 const BLINK_DURATION = 600; // ms of blinking before fully hidden
 const BLINK_INTERVAL = 100; // ms per blink toggle
-const FILL_COLOR = 0xffffff;
-const STROKE_COLOR = 0x000000;
 
 export class SpeechBubble {
   constructor(scene, target, text = '') {
@@ -38,10 +37,14 @@ export class SpeechBubble {
     this.deltaX = 0;
     this.timer = 0;
     this.blinkTimer = 0;
-    this.visible = true;
+    this.visible = false;
     this.blinking = false;
 
-    this.setText(text);
+    if (text) {
+      this.setText(text);
+    } else {
+      this._setVisible(false);
+    }
   }
 
   setText(text) {
@@ -66,14 +69,14 @@ export class SpeechBubble {
     const h = this.text.height + PADDING * 2;
 
     this.bg.clear();
-    this.bg.fillStyle(FILL_COLOR, 1);
-    this.bg.lineStyle(STROKE_WIDTH, STROKE_COLOR, 1);
+    this.bg.fillStyle(COLORS.FILL, 1);
+    this.bg.lineStyle(STROKE_WIDTH, COLORS.STROKE, 1);
     this.bg.fillRoundedRect(-w / 2, -h, w, h, 4);
     this.bg.strokeRoundedRect(-w / 2, -h, w, h, 4);
 
     this.tail.clear();
-    this.tail.fillStyle(FILL_COLOR, 1);
-    this.tail.lineStyle(STROKE_WIDTH, STROKE_COLOR, 1);
+    this.tail.fillStyle(COLORS.FILL, 1);
+    this.tail.lineStyle(STROKE_WIDTH, COLORS.STROKE, 1);
     this.tail.fillTriangle(-TAIL_SIZE, 0, TAIL_SIZE, 0, 0, TAIL_SIZE);
     this.tail.lineBetween(-TAIL_SIZE, 0, 0, TAIL_SIZE);
     this.tail.lineBetween(TAIL_SIZE, 0, 0, TAIL_SIZE);
