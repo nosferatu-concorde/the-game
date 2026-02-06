@@ -1,43 +1,72 @@
-import { Player } from '../entities/Player.js';
-import { Enemy } from '../entities/Enemy.js';
-import { GAME_WIDTH, GAME_HEIGHT, CENTER_X, CENTER_Y, GROUND_Y, PLATFORM_HEIGHT } from '../constants/config.js';
-import { COLORS, STROKE_WIDTH } from '../constants/styles.js';
-import { LEVEL_1 } from '../constants/levels.js';
+import { Player } from "../entities/Player.js";
+import { Enemy } from "../entities/Enemy.js";
+import {
+  GAME_WIDTH,
+  GAME_HEIGHT,
+  CENTER_X,
+  CENTER_Y,
+  GROUND_Y,
+  PLATFORM_HEIGHT,
+} from "../constants/config.js";
+import { COLORS, STROKE_WIDTH } from "../constants/styles.js";
+import { LEVEL_1 } from "../constants/levels.js";
 
 export class GameScene extends Phaser.Scene {
   constructor() {
-    super('GameScene');
+    super("GameScene");
   }
 
   create() {
-    this.cameras.main.setPostPipeline('CRTPipeline');
+    this.cameras.main.setPostPipeline("CRTPipeline");
 
     // White background (needed for PostFX pipeline)
     this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, COLORS.BG);
 
     // Ground (always solid)
-    const ground = this.add.rectangle(CENTER_X, GROUND_Y, GAME_WIDTH, PLATFORM_HEIGHT, COLORS.FILL);
+    const ground = this.add.rectangle(
+      CENTER_X,
+      GROUND_Y,
+      GAME_WIDTH,
+      PLATFORM_HEIGHT,
+      COLORS.FILL,
+    );
     ground.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
     this.physics.add.existing(ground, true);
 
     // Platforms (drop-through)
     const platforms = this.physics.add.staticGroup();
     for (const p of LEVEL_1.platforms) {
-      const plat = this.add.rectangle(p.x, p.y, p.w, PLATFORM_HEIGHT, COLORS.FILL);
+      const plat = this.add.rectangle(
+        p.x,
+        p.y,
+        p.w,
+        PLATFORM_HEIGHT,
+        COLORS.FILL,
+      );
       plat.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
       platforms.add(plat);
     }
 
     // Goal area
-    const goal = this.add.rectangle(LEVEL_1.goal.x, LEVEL_1.goal.y, LEVEL_1.goal.w, LEVEL_1.goal.h, COLORS.GOAL_FILL);
+    const goal = this.add.rectangle(
+      LEVEL_1.goal.x,
+      LEVEL_1.goal.y,
+      LEVEL_1.goal.w,
+      LEVEL_1.goal.h,
+      COLORS.GOAL_FILL,
+    );
     goal.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
     this.physics.add.existing(goal, true);
 
-    this.player = new Player(this, LEVEL_1.playerSpawn.x, LEVEL_1.playerSpawn.y);
+    this.player = new Player(
+      this,
+      LEVEL_1.playerSpawn.x,
+      LEVEL_1.playerSpawn.y,
+    );
 
     // Enemies
     this.enemies = LEVEL_1.enemies.map(
-      (e) => new Enemy(this, e.x, e.y, e.patrolMin, e.patrolMax)
+      (e) => new Enemy(this, e.x, e.y, e.patrolMin, e.patrolMax),
     );
 
     this.physics.add.collider(this.player.sprite, ground);
@@ -49,7 +78,7 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.overlap(this.player.sprite, goal, () => {
       if (!this.goalReached) {
         this.goalReached = true;
-        this.player.bubble.setText('LEVEL\nCOMPLETE!');
+        this.player.bubble.setText("LEVEL\nCOMPLETE!");
       }
     });
 
@@ -65,17 +94,27 @@ export class GameScene extends Phaser.Scene {
       this.physics.add.overlap(this.player.sprite, enemy.sprite, () => {
         enemy.onPlayerContact();
       });
-      this.physics.add.collider(this.player.sprite, enemy.bubble.collider, () => {
-        // Carry player along with the moving bubble
-        this.player.sprite.x += enemy.bubble.deltaX;
-      });
+      this.physics.add.collider(
+        this.player.sprite,
+        enemy.bubble.collider,
+        () => {
+          // Carry player along with the moving bubble
+          this.player.sprite.x += enemy.bubble.deltaX;
+        },
+      );
     }
   }
 
   update(time, delta) {
     this.player.update(time, delta);
+    const anyChasing = this.enemies.some((e) => e.chasing);
     for (const enemy of this.enemies) {
       enemy.update(delta);
+    }
+
+    // Slight screen shake while any enemy is chasing
+    if (anyChasing) {
+      this.cameras.main.shake(100, 0.002, false);
     }
   }
 }

@@ -1,11 +1,12 @@
-import { SpeechBubble } from '../ui/SpeechBubble.js';
-import { COLORS, STROKE_WIDTH } from '../constants/styles.js';
+import { SpeechBubble } from "../ui/SpeechBubble.js";
+import { COLORS, STROKE_WIDTH } from "../constants/styles.js";
 
 const WIDTH = 32;
 const HEIGHT = 32;
 const PATROL_SPEED = 100;
-const CHASE_SPEED = 160;
+const CHASE_SPEED = 260;
 const Y_TOLERANCE = 20; // max vertical difference to count as "same level"
+const CHASE_SPIN_SPEED = 0.02; // radians per ms
 
 export class Enemy {
   constructor(scene, x, y, patrolMin, patrolMax) {
@@ -13,7 +14,7 @@ export class Enemy {
     this.player = null;
     this.patrolMin = patrolMin;
     this.patrolMax = patrolMax;
-    this.direction = 'right';
+    this.direction = "right";
     this.chasing = false;
     this.touching = false;
 
@@ -24,11 +25,11 @@ export class Enemy {
     this.sprite.body.setVelocityX(PATROL_SPEED);
 
     // Direction indicator text
-    this.indicator = scene.add.text(x, y, '>', {
-      fontFamily: 'monospace',
-      fontSize: '20px',
-      color: '#ffffff',
-      fontStyle: 'bold',
+    this.indicator = scene.add.text(x, y, ">", {
+      fontFamily: "monospace",
+      fontSize: "20px",
+      color: "#ffffff",
+      fontStyle: "bold",
     });
     this.indicator.setOrigin(0.5, 0.5);
 
@@ -45,8 +46,8 @@ export class Enemy {
     const playerY = this.player.sprite.y;
     const sameLevel = Math.abs(playerY - this.sprite.y) < Y_TOLERANCE;
     if (!sameLevel) return false;
-    if (this.direction === 'left' && playerX < this.sprite.x) return true;
-    if (this.direction === 'right' && playerX > this.sprite.x) return true;
+    if (this.direction === "left" && playerX < this.sprite.x) return true;
+    if (this.direction === "right" && playerX > this.sprite.x) return true;
     return false;
   }
 
@@ -56,20 +57,20 @@ export class Enemy {
 
   _getBubbleText() {
     if (this.touching) {
-      return 'KILL, KILL, KILL!';
+      return "KILL, KILL, KILL!";
     }
     if (this.chasing) {
-      return 'IF player.visible\nTHEN chase()';
+      return "computer_overlords\nKILL KILL KILL";
     }
-    if (this.direction === 'left') {
-      return 'patrol_left()';
+    if (this.direction === "left") {
+      return "patrol_left()";
     }
-    return 'patrol_right()';
+    return "patrol_right()";
   }
 
   _updateIndicator() {
     this.indicator.setPosition(this.sprite.x, this.sprite.y);
-    this.indicator.setText(this.direction === 'right' ? '>' : '<');
+    this.indicator.setText(this.direction === "right" ? ">" : "<");
   }
 
   update(delta) {
@@ -85,25 +86,36 @@ export class Enemy {
       const speed = CHASE_SPEED;
       if (this.player.sprite.x < this.sprite.x) {
         body.setVelocityX(-speed);
-        newDirection = 'left';
+        newDirection = "left";
       } else {
         body.setVelocityX(speed);
-        newDirection = 'right';
+        newDirection = "right";
       }
     } else {
       // Patrol
       if (this.sprite.x >= this.patrolMax) {
         body.setVelocityX(-PATROL_SPEED);
-        newDirection = 'left';
+        newDirection = "left";
       } else if (this.sprite.x <= this.patrolMin) {
         body.setVelocityX(PATROL_SPEED);
-        newDirection = 'right';
+        newDirection = "right";
       }
     }
 
-    if (newDirection !== this.direction || wasChasing !== this.chasing || wasTouching !== this.touching) {
+    if (
+      newDirection !== this.direction ||
+      wasChasing !== this.chasing ||
+      wasTouching !== this.touching
+    ) {
       this.direction = newDirection;
       this.bubble.setText(this._getBubbleText());
+    }
+
+    // Spin when chasing, reset when patrolling
+    if (this.chasing) {
+      this.sprite.rotation += CHASE_SPIN_SPEED * delta;
+    } else if (this.sprite.rotation !== 0) {
+      this.sprite.rotation = 0;
     }
 
     this._updateIndicator();
