@@ -1,4 +1,5 @@
 import { Player } from '../entities/Player.js';
+import { Enemy } from '../entities/Enemy.js';
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -34,13 +35,36 @@ export class GameScene extends Phaser.Scene {
 
     this.player = new Player(this, 640, 600);
 
+    // Enemy patrolling on the ground
+    this.enemies = [
+      new Enemy(this, 300, 680, 100, 500),
+    ];
+
     this.physics.add.collider(this.player.sprite, ground);
-    this.physics.add.collider(this.player.sprite, platforms, null, (player, platform) => {
+    this.physics.add.collider(this.player.sprite, platforms, null, () => {
       return !this.player.isDropping;
     });
+
+    // Give enemies a reference to the player
+    for (const enemy of this.enemies) {
+      enemy.setPlayer(this.player);
+    }
+
+    // Enemy colliders
+    for (const enemy of this.enemies) {
+      this.physics.add.collider(enemy.sprite, ground);
+      this.physics.add.collider(enemy.sprite, platforms);
+      this.physics.add.collider(this.player.sprite, enemy.bubble.collider, () => {
+        // Carry player along with the moving bubble
+        this.player.sprite.x += enemy.bubble.deltaX;
+      });
+    }
   }
 
   update(time, delta) {
     this.player.update(time, delta);
+    for (const enemy of this.enemies) {
+      enemy.update(delta);
+    }
   }
 }
