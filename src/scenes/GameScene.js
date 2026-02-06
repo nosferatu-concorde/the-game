@@ -93,6 +93,7 @@ export class GameScene extends Phaser.Scene {
       this.physics.add.collider(enemy.sprite, platforms);
       this.physics.add.overlap(this.player.sprite, enemy.sprite, () => {
         enemy.onPlayerContact();
+        this.scene.restart();
       });
       this.physics.add.collider(
         this.player.sprite,
@@ -100,6 +101,12 @@ export class GameScene extends Phaser.Scene {
         () => {
           // Carry player along with the moving bubble
           this.player.sprite.x += enemy.bubble.deltaX;
+        },
+        () => {
+          // Only collide when player is above the bubble (landing on top)
+          const playerBottom = this.player.sprite.body.bottom;
+          const bubbleTop = enemy.bubble.collider.body.top;
+          return this.player.sprite.body.velocity.y >= 0 && playerBottom <= bubbleTop + 8;
         },
       );
     }
