@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { TitleScene } from './scenes/TitleScene.js';
 import { GameScene } from './scenes/GameScene.js';
 import { CRTPipeline } from './shaders/CRTPipeline.js';
 import { GAME_WIDTH, GAME_HEIGHT, GRAVITY } from './constants/config.js';
@@ -16,7 +17,7 @@ const config = {
     },
   },
   pipeline: { CRTPipeline },
-  scene: [GameScene],
+  scene: [TitleScene, GameScene],
 };
 
 new Phaser.Game(config);
