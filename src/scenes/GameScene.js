@@ -82,6 +82,9 @@ export class GameScene extends Phaser.Scene {
       }
     });
 
+    // Store platforms for bubble collision checking
+    this.platformGroup = platforms;
+
     // Give enemies a reference to the player
     for (const enemy of this.enemies) {
       enemy.setPlayer(this.player);
@@ -123,5 +126,29 @@ export class GameScene extends Phaser.Scene {
     if (anyChasing) {
       this.cameras.main.shake(100, 0.002, false);
     }
+
+    // Push bubbles out of platforms
+    const playerBubbleHit = this._clampBubble(this.player.bubble);
+    if (playerBubbleHit && this.player.sprite.body.velocity.y < 0) {
+      this.player.sprite.body.velocity.y = 0;
+      this.player.sprite.y += playerBubbleHit;
+    }
+    for (const enemy of this.enemies) {
+      this._clampBubble(enemy.bubble);
+    }
+  }
+
+  _clampBubble(bubble) {
+    if (!bubble.visible) return 0;
+    const b = bubble.getBounds();
+    for (const plat of this.platformGroup.getChildren()) {
+      const p = plat.body;
+      if (b.right > p.left && b.left < p.right && b.top < p.bottom && b.bottom > p.top) {
+        const offset = p.bottom - b.top;
+        bubble.applyOffset(0, offset);
+        return offset;
+      }
+    }
+    return 0;
   }
 }

@@ -122,6 +122,28 @@ export class SpeechBubble {
     this.collider.body.reset(x, y - h / 2);
   }
 
+  getBounds() {
+    const w = this.text.width + PADDING * 2;
+    const h = this.text.height + PADDING * 2;
+    return {
+      left: this.bg.x - w / 2,
+      right: this.bg.x + w / 2,
+      top: this.bg.y - h,
+      bottom: this.bg.y,
+    };
+  }
+
+  applyOffset(dx, dy) {
+    this.bg.x += dx;
+    this.bg.y += dy;
+    this.tail.x += dx;
+    this.tail.y += dy;
+    this.text.x += dx;
+    this.text.y += dy;
+    this.collider.setPosition(this.collider.x + dx, this.collider.y + dy);
+    this.collider.body.reset(this.collider.x, this.collider.y);
+  }
+
   destroy() {
     this.bg.destroy();
     this.tail.destroy();
