@@ -70,9 +70,18 @@ export class GameScene extends Phaser.Scene {
     );
 
     this.physics.add.collider(this.player.sprite, ground);
-    this.physics.add.collider(this.player.sprite, platforms, null, () => {
-      return !this.player.isDropping;
-    });
+    this.physics.add.collider(
+      this.player.sprite,
+      platforms,
+      () => {
+        if (this.player.sprite.body.blocked.up) {
+          this.cameras.main.shake(200, 0.004, false);
+        }
+      },
+      () => {
+        return !this.player.isDropping;
+      },
+    );
 
     // Goal overlap
     this.physics.add.overlap(this.player.sprite, goal, () => {
@@ -116,6 +125,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(time, delta) {
+    const grounded = this.player.sprite.body.blocked.down;
+    if (!this.wasGrounded && grounded) {
+      this.cameras.main.shake(200, 0.004, false);
+    }
+    this.wasGrounded = grounded;
     this.player.update(time, delta);
     const anyChasing = this.enemies.some((e) => e.chasing);
     for (const enemy of this.enemies) {
@@ -132,6 +146,7 @@ export class GameScene extends Phaser.Scene {
     if (playerBubbleHit && this.player.sprite.body.velocity.y < 0) {
       this.player.sprite.body.velocity.y = 0;
       this.player.sprite.y += playerBubbleHit;
+      this.cameras.main.shake(200, 0.004, false);
     }
     for (const enemy of this.enemies) {
       this._clampBubble(enemy.bubble);
