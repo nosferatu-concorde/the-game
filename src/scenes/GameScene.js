@@ -28,6 +28,11 @@ export class GameScene extends Phaser.Scene {
       platforms.add(plat);
     }
 
+    // Goal area
+    const goal = this.add.rectangle(LEVEL_1.goal.x, LEVEL_1.goal.y, LEVEL_1.goal.w, LEVEL_1.goal.h, COLORS.GOAL_FILL);
+    goal.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
+    this.physics.add.existing(goal, true);
+
     this.player = new Player(this, LEVEL_1.playerSpawn.x, LEVEL_1.playerSpawn.y);
 
     // Enemies
@@ -38,6 +43,14 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.collider(this.player.sprite, ground);
     this.physics.add.collider(this.player.sprite, platforms, null, () => {
       return !this.player.isDropping;
+    });
+
+    // Goal overlap
+    this.physics.add.overlap(this.player.sprite, goal, () => {
+      if (!this.goalReached) {
+        this.goalReached = true;
+        this.player.bubble.setText('LEVEL\nCOMPLETE!');
+      }
     });
 
     // Give enemies a reference to the player
