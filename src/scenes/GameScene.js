@@ -54,6 +54,9 @@ export class GameScene extends Phaser.Scene {
     for (const enemy of this.enemies) {
       this.physics.add.collider(enemy.sprite, ground);
       this.physics.add.collider(enemy.sprite, platforms);
+      this.physics.add.overlap(this.player.sprite, enemy.sprite, () => {
+        enemy.onPlayerContact();
+      });
       this.physics.add.collider(this.player.sprite, enemy.bubble.collider, () => {
         // Carry player along with the moving bubble
         this.player.sprite.x += enemy.bubble.deltaX;

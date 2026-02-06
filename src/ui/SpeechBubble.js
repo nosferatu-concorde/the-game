@@ -58,6 +58,7 @@ export class SpeechBubble {
     this.bg.setVisible(val);
     this.tail.setVisible(val);
     this.text.setVisible(val);
+    this.collider.body.enable = val;
   }
 
   _redraw() {

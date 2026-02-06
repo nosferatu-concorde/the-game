@@ -18,6 +18,7 @@ export class Enemy {
     this.patrolMax = patrolMax;
     this.direction = 'right';
     this.chasing = false;
+    this.touching = false;
 
     this.sprite = scene.add.rectangle(x, y, WIDTH, HEIGHT, FILL_COLOR);
     this.sprite.setStrokeStyle(STROKE_WIDTH, STROKE_COLOR);
@@ -47,7 +48,14 @@ export class Enemy {
     return false;
   }
 
+  onPlayerContact() {
+    this.touching = true;
+  }
+
   _getBubbleText() {
+    if (this.touching) {
+      return 'KILL, KILL, KILL!';
+    }
     if (this.chasing) {
       return 'IF player.visible\nTHEN chase()';
     }
@@ -67,6 +75,7 @@ export class Enemy {
   update(delta) {
     const body = this.sprite.body;
     const wasChasing = this.chasing;
+    const wasTouching = this.touching;
     let newDirection = this.direction;
 
     this.chasing = this._isFacingPlayer();
@@ -92,12 +101,15 @@ export class Enemy {
       }
     }
 
-    if (newDirection !== this.direction || wasChasing !== this.chasing) {
+    if (newDirection !== this.direction || wasChasing !== this.chasing || wasTouching !== this.touching) {
       this.direction = newDirection;
       this.bubble.setText(this._getBubbleText());
     }
 
     this._updateIndicator();
     this.bubble.update(delta);
+
+    // Reset touching after bubble text has been updated
+    this.touching = false;
   }
 }
