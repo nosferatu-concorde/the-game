@@ -33,6 +33,8 @@ export class GameScene extends Phaser.Scene {
     this.goalLanded = false;
     this.spinActivated = false;
     this.wasGrounded = false;
+    this.sawDeath = null;
+    this.sawDeathTimer = 0;
 
     const LEVELS = { 1: LEVEL_1, 2: LEVEL_2 };
     const levelData = LEVELS[this.currentLevel] || LEVEL_1;
@@ -149,7 +151,8 @@ export class GameScene extends Phaser.Scene {
 
     // Circular saws (move in rectangle around platform)
     this.saws = levelData.saws.map((s) => {
-      const pad = s.padding;
+      const sawRadius = 42;
+      const pad = s.padding + sawRadius;
       const hw = s.w / 2 + pad;
       const hh = PLATFORM_HEIGHT / 2 + pad;
       const rectW = hw * 2;
@@ -167,7 +170,7 @@ export class GameScene extends Phaser.Scene {
 
       const bubble = new SpeechBubble(this, sawImage, "while(true)\n  keep_going()");
       this.physics.add.overlap(this.player.sprite, sawZone, () => {
-        this._playerDie();
+        this._playerSawDie(sawImage);
       });
       return {
         sprite: sawImage,
@@ -228,6 +231,27 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(time, delta) {
+    if (this.sawDeath) {
+      this.sawDeathTimer -= delta;
+      this.sawDeath.rotation += 0.03 * delta;
+      this.cameras.main.shake(100, 0.008, false);
+
+      const px = this.player.sprite.x;
+      const py = this.player.sprite.y;
+      const sx = this.sawDeath.x;
+      const sy = this.sawDeath.y;
+      const t = 2 * delta / 1000;
+      this.player.sprite.x += (sx - px) * t;
+      this.player.sprite.y += (sy - py) * t;
+      const pcY = this.player.sprite.y - this.player.sprite.displayHeight * this.player.sprite.originY + this.player.sprite.displayHeight / 2;
+      this.sawParticles.setPosition(this.player.sprite.x, pcY);
+
+      if (this.sawDeathTimer <= 0) {
+        this._playerDie();
+      }
+      return;
+    }
+
     const grounded = this.player.sprite.body.blocked.down;
     if (!this.wasGrounded && grounded) {
       this.cameras.main.shake(150, 0.002, false);
@@ -301,10 +325,62 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  _playerDie() {
+  _playerSawDie(sawSprite) {
     if (this.isDead) return;
     this.isDead = true;
     this.physics.pause();
+    this.sawDeath = sawSprite;
+    this.sawDeathTimer = 1000;
+    this.player.sprite.setDepth(25);
+
+    // Robot blood particles
+    const gfx = this.add.graphics();
+    gfx.fillStyle(0x000000);
+    gfx.lineStyle(1, 0x000000);
+    gfx.fillRect(0, 0, 6, 6);
+    gfx.strokeRect(0, 0, 6, 6);
+    gfx.generateTexture("robot_blood", 6, 6);
+    gfx.destroy();
+
+    const playerCenterY = this.player.sprite.y - this.player.sprite.displayHeight * this.player.sprite.originY + this.player.sprite.displayHeight / 2;
+    this.sawParticles = this.add.particles(this.player.sprite.x, playerCenterY, "robot_blood", {
+      speedX: { onEmit: () => { const s = Phaser.Math.Between(50, 400); return Math.random() < 0.5 ? -s : s; } },
+      speedY: { onEmit: () => { const s = Phaser.Math.Between(50, 400); return Math.random() < 0.5 ? -s : s; } },
+      emitZone: { type: 'random', source: new Phaser.Geom.Circle(0, 0, 50) },
+      scale: { start: 1.5, end: 0.2 },
+      alpha: 1,
+      lifespan: { min: 500, max: 1000 },
+      frequency: 10,
+      quantity: 8,
+      rotate: { min: 0, max: 360 },
+      accelerationY: 200,
+    });
+    this.sawParticles.setDepth(5);
+    this.sawDeath.setDepth(20);
+
+    const cam = this.cameras.main;
+    cam.pan(sawSprite.x, sawSprite.y, 800, 'Sine.easeInOut');
+    cam.zoomTo(3, 800, 'Sine.easeInOut');
+
+    for (const bubble of this.allBubbles) {
+      bubble._setVisible(false);
+    }
+  }
+
+  _playerDie() {
+    if (this.isDead && !this.sawDeath) return;
+    this.isDead = true;
+    if (this.sawParticles) {
+      this.sawParticles.destroy();
+      this.sawParticles = null;
+    }
+    this.sawDeath = null;
+    this.physics.pause();
+
+    const cam = this.cameras.main;
+    cam.stopFollow();
+    cam.pan(CENTER_X, CENTER_Y, 0);
+    cam.zoomTo(1, 0);
 
     const overlay = this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, 0x000000);
     overlay.setDepth(99);

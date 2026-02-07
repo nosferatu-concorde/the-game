@@ -17,7 +17,7 @@ const config = {
     default: 'arcade',
     arcade: {
       gravity: { y: GRAVITY },
-      debug: false,
+      debug: true,
     },
   },
   pipeline: { CRTPipeline },
