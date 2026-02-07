@@ -91,10 +91,20 @@ export class GameScene extends Phaser.Scene {
       levelData.playerSpawn.y,
     );
 
-    // Enemies
+    // Enemies - base enemies plus extras based on level
     this.enemies = levelData.enemies.map(
       (e) => new Enemy(this, e.x, e.y, e.patrolMin, e.patrolMax),
     );
+
+    // Add extra enemies based on level number
+    const extraEnemies = this.currentLevel - 1;
+    for (let i = 0; i < extraEnemies; i++) {
+      const sectionWidth = GAME_WIDTH / (extraEnemies + 1);
+      const x = sectionWidth * (i + 0.5);
+      const patrolMin = Math.max(50, x - 150);
+      const patrolMax = Math.min(GAME_WIDTH - 50, x + 150);
+      this.enemies.push(new Enemy(this, x, 680, patrolMin, patrolMax));
+    }
 
     this.physics.add.collider(this.player.sprite, ground);
     this.physics.add.collider(
