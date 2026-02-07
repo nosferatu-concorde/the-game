@@ -5,7 +5,8 @@
       "Bash(npm install:*)",
       "Bash(npm run dev:*)",
       "Bash(identify:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(sips:*)"
     ]
   }
 }

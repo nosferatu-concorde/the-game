@@ -22,6 +22,7 @@ export class GameScene extends Phaser.Scene {
   preload() {
     this.load.image("goal", "heart.png");
     this.load.image("saw", "saw.png");
+    this.load.image("ground", "ground.png");
     this.load.image("player", "player.png");
 
     // Pre-generate robot blood particle texture
@@ -54,14 +55,7 @@ export class GameScene extends Phaser.Scene {
     this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, COLORS.BG);
 
     // Ground (always solid)
-    const ground = this.add.rectangle(
-      CENTER_X,
-      GROUND_Y,
-      GAME_WIDTH,
-      PLATFORM_HEIGHT,
-      COLORS.FILL,
-    );
-    ground.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
+    const ground = this.add.image(CENTER_X, GAME_HEIGHT, "ground").setOrigin(0.5, 1);
     this.physics.add.existing(ground, true);
 
     // Platforms (drop-through)
