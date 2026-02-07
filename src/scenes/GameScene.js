@@ -191,6 +191,38 @@ export class GameScene extends Phaser.Scene {
       };
     });
 
+    // Moving platforms (dynamic but immovable)
+    this.movingPlatforms = (levelData.movingPlatforms || []).map((mp) => {
+      const plat = this.add.rectangle(
+        mp.x,
+        mp.y,
+        mp.w,
+        PLATFORM_HEIGHT,
+        COLORS.FILL,
+      );
+      plat.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
+      this.physics.add.existing(plat, false);
+      plat.body.setImmovable(true);
+      plat.body.setAllowGravity(false);
+      plat.body.setFriction(1);
+      return { sprite: plat, minX: mp.minX, maxX: mp.maxX, speed: mp.speed, dir: 1 };
+    });
+
+    // Moving platform colliders
+    for (const mp of this.movingPlatforms) {
+      this.physics.add.collider(
+        this.player.sprite,
+        mp.sprite,
+        () => {
+          if (this.player.sprite.body.blocked.up) {
+            this.cameras.main.shake(150, 0.002, false);
+          }
+        },
+        () => !this.player.isDropping,
+      );
+      this.physics.add.collider(this.goalObj, mp.sprite, goalBounce);
+    }
+
     // Store platforms for bubble collision checking
     this.platformGroup = platforms;
 
@@ -203,6 +235,9 @@ export class GameScene extends Phaser.Scene {
     for (const enemy of this.enemies) {
       this.physics.add.collider(enemy.sprite, ground);
       this.physics.add.collider(enemy.sprite, platforms);
+      for (const mp of this.movingPlatforms) {
+        this.physics.add.collider(enemy.sprite, mp.sprite);
+      }
       this.physics.add.overlap(this.player.sprite, enemy.sprite, () => {
         enemy.onPlayerContact();
         this._playerEnemyDie(enemy.sprite);
@@ -332,6 +367,14 @@ export class GameScene extends Phaser.Scene {
     this.player.update(time, delta);
     for (const enemy of this.enemies) {
       enemy.update(delta);
+    }
+
+    // Update moving platforms
+    for (const mp of this.movingPlatforms) {
+      const x = mp.sprite.x;
+      if (x >= mp.maxX) mp.dir = -1;
+      else if (x <= mp.minX) mp.dir = 1;
+      mp.sprite.body.setVelocityX(mp.speed * mp.dir);
     }
 
     // Update saws (rectangular path around platform)
@@ -553,6 +596,21 @@ export class GameScene extends Phaser.Scene {
         if (triggerSpin) {
           this._activateSpinPlatform();
         }
+        return offset;
+      }
+    }
+
+    // Check moving platforms
+    for (const mp of this.movingPlatforms) {
+      const p = mp.sprite.body;
+      if (
+        b.right > p.left &&
+        b.left < p.right &&
+        b.top < p.bottom &&
+        b.bottom > p.top
+      ) {
+        const offset = p.bottom - b.top;
+        bubble.applyOffset(0, offset);
         return offset;
       }
     }

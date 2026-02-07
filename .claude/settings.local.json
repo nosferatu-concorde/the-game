@@ -10,7 +10,8 @@
       "Bash(node -e:*)",
       "WebSearch",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "mcp__ide__getDiagnostics"
     ]
   }
 }

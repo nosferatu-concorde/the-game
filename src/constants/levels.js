@@ -15,6 +15,9 @@ export const LEVEL_1 = {
   saws: [
     { x: 500, y: 450, w: 200, speed: 0.15, padding: 15 },
   ],
+  movingPlatforms: [
+    { x: 700, y: 250, w: 120, minX: 550, maxX: 850, speed: 120 },
+  ],
   playerSpawn: { x: 640, y: 600 },
 };
 
@@ -175,6 +178,9 @@ export const LEVEL_7 = {
     { x: 850, y: 300, w: 100, speed: 0.26, padding: 15 },
     { x: 750, y: 160, w: 80, speed: 0.32, padding: 15 },
   ],
+  movingPlatforms: [
+    { x: 500, y: 320, w: 100, minX: 400, maxX: 700, speed: 60 },
+  ],
   playerSpawn: { x: 100, y: 600 },
 };
 
@@ -206,6 +212,10 @@ export const LEVEL_8 = {
     { x: 950, y: 320, w: 80, speed: 0.32, padding: 15 },
     { x: 1150, y: 480, w: 80, speed: 0.28, padding: 15 },
     { x: 600, y: 200, w: 80, speed: 0.34, padding: 15 },
+  ],
+  movingPlatforms: [
+    { x: 550, y: 340, w: 100, minX: 400, maxX: 750, speed: 70 },
+    { x: 1000, y: 250, w: 80, minX: 900, maxX: 1150, speed: 55 },
   ],
   playerSpawn: { x: 640, y: 600 },
 };
@@ -240,6 +250,10 @@ export const LEVEL_9 = {
     { x: 1100, y: 450, w: 80, speed: 0.3, padding: 15 },
     { x: 250, y: 250, w: 80, speed: 0.32, padding: 15 },
     { x: 750, y: 130, w: 80, speed: 0.36, padding: 15 },
+  ],
+  movingPlatforms: [
+    { x: 450, y: 310, w: 90, minX: 300, maxX: 600, speed: 75 },
+    { x: 800, y: 200, w: 80, minX: 700, maxX: 950, speed: 65 },
   ],
   playerSpawn: { x: 100, y: 600 },
 };
@@ -277,6 +291,11 @@ export const LEVEL_10 = {
     { x: 1130, y: 460, w: 70, speed: 0.28, padding: 15 },
     { x: 500, y: 170, w: 70, speed: 0.36, padding: 15 },
     { x: 1050, y: 200, w: 70, speed: 0.38, padding: 15 },
+  ],
+  movingPlatforms: [
+    { x: 400, y: 320, w: 80, minX: 280, maxX: 580, speed: 80 },
+    { x: 900, y: 250, w: 70, minX: 800, maxX: 1050, speed: 70 },
+    { x: 650, y: 180, w: 70, minX: 500, maxX: 800, speed: 90 },
   ],
   playerSpawn: { x: 640, y: 600 },
 };
