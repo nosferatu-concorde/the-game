@@ -26,7 +26,7 @@ import { SpeechBubble } from "../ui/SpeechBubble.js";
 import { zoomTo, zoomReset } from "../utils/cameraZoom.js";
 import { CRTPipeline } from "../shaders/CRTPipeline.js";
 import { particleBurst } from "../utils/particleBurst.js";
-import { SAW_LOOP, DEATH_TEXT } from "../constants/dialogue.js";
+import { SAW_LOOP, DEATH_TEXT, HALFWAY_MESSAGE, END_MESSAGE } from "../constants/dialogue.js";
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -79,6 +79,7 @@ export class GameScene extends Phaser.Scene {
     this.sawDeath = null;
     this.sawDeathTimer = 0;
     this.chaseShakeCooldown = 0;
+    this.halfwayWaiting = false;
 
     const LEVELS = {
       1: LEVEL_1,
@@ -444,6 +445,10 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    if (this.halfwayWaiting) {
+      return;
+    }
+
     if (this.goalCelebrationTimer > 0) {
       this.goalCelebrationTimer -= delta;
       this.cameras.main.shake(100, 0.004, false);
@@ -454,7 +459,13 @@ export class GameScene extends Phaser.Scene {
       this.player.sprite.rotation = t * Math.PI * 2;
 
       if (this.goalCelebrationTimer <= 0) {
-        this._goalTransition();
+        if (this.currentLevel === 5) {
+          this._showHalfwayMessage(HALFWAY_MESSAGE);
+        } else if (this.currentLevel === 10) {
+          this._showHalfwayMessage(END_MESSAGE);
+        } else {
+          this._goalTransition();
+        }
       }
       return;
     }
@@ -525,7 +536,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   _playerEnemyDie(enemySprite) {
-    if (this.isDead) return;
+    if (this.isDead || this.goalReached) return;
     this.isDead = true;
     this.physics.pause();
     this.enemyDeath = enemySprite;
@@ -554,7 +565,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   _playerSawDie(sawSprite) {
-    if (this.isDead) return;
+    if (this.isDead || this.goalReached) return;
     this.isDead = true;
     this.physics.pause();
     this.sawDeath = sawSprite;
@@ -668,6 +679,7 @@ export class GameScene extends Phaser.Scene {
     overlay.setDepth(99);
 
     const nextLevel = this.currentLevel + 1;
+
     const levelText = this.add.text(CENTER_X, CENTER_Y, String(nextLevel), {
       fontFamily: "monospace",
       fontSize: "500px",
@@ -679,6 +691,42 @@ export class GameScene extends Phaser.Scene {
 
     this.time.delayedCall(200, () => {
       this.scene.restart({ level: nextLevel });
+    });
+  }
+
+  _showHalfwayMessage(message) {
+    this.halfwayWaiting = true;
+
+    const gx = this.goalObj.x;
+    const gy = this.goalObj.y;
+    const msgText = this.add.text(gx, gy + 40, message, {
+      fontFamily: "monospace",
+      fontSize: "10px",
+      color: "#ffffff",
+      align: "center",
+      stroke: "#000000",
+      strokeThickness: 3,
+      wordWrap: { width: 200 },
+    });
+    msgText.setOrigin(0.5);
+    msgText.setDepth(999);
+
+    this.tweens.add({
+      targets: msgText,
+      scale: { from: 1, to: 1.15 },
+      duration: 800,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut",
+    });
+
+    this.input.keyboard.once("keydown-SPACE", () => {
+      msgText.destroy();
+      if (this.currentLevel === 10) {
+        this.scene.start("TitleScene");
+      } else {
+        this._goalTransition();
+      }
     });
   }
 
