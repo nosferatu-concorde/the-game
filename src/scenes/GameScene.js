@@ -10,7 +10,7 @@ import {
   GRAVITY,
 } from "../constants/config.js";
 import { COLORS, STROKE_WIDTH } from "../constants/styles.js";
-import { LEVEL_1, LEVEL_2, LEVEL_3, LEVEL_4, LEVEL_5 } from "../constants/levels.js";
+import { LEVEL_1, LEVEL_2, LEVEL_3, LEVEL_4, LEVEL_5, LEVEL_6, LEVEL_7, LEVEL_8, LEVEL_9, LEVEL_10 } from "../constants/levels.js";
 import { SpeechBubble } from "../ui/SpeechBubble.js";
 import { zoomTo, zoomReset } from "../utils/cameraZoom.js";
 import { CRTPipeline } from "../shaders/CRTPipeline.js";
@@ -54,7 +54,7 @@ export class GameScene extends Phaser.Scene {
     this.sawDeathTimer = 0;
     this.chaseShakeCooldown = 0;
 
-    const LEVELS = { 1: LEVEL_1, 2: LEVEL_2, 3: LEVEL_3, 4: LEVEL_4, 5: LEVEL_5 };
+    const LEVELS = { 1: LEVEL_1, 2: LEVEL_2, 3: LEVEL_3, 4: LEVEL_4, 5: LEVEL_5, 6: LEVEL_6, 7: LEVEL_7, 8: LEVEL_8, 9: LEVEL_9, 10: LEVEL_10 };
     const levelData = LEVELS[this.currentLevel] || LEVEL_1;
 
     // Background (needed for PostFX pipeline)
