@@ -9,7 +9,7 @@ import {
   PLATFORM_HEIGHT,
 } from "../constants/config.js";
 import { COLORS, STROKE_WIDTH } from "../constants/styles.js";
-import { LEVEL_1 } from "../constants/levels.js";
+import { LEVEL_1, LEVEL_2 } from "../constants/levels.js";
 import { SpeechBubble } from "../ui/SpeechBubble.js";
 
 export class GameScene extends Phaser.Scene {
@@ -21,12 +21,19 @@ export class GameScene extends Phaser.Scene {
     this.load.image("goal", "goal.png");
   }
 
+  init(data) {
+    this.currentLevel = data.level || 1;
+  }
+
   create() {
     this.isDead = false;
     this.goalReached = false;
     this.goalLanded = false;
     this.spinActivated = false;
     this.wasGrounded = false;
+
+    const LEVELS = { 1: LEVEL_1, 2: LEVEL_2 };
+    const levelData = LEVELS[this.currentLevel] || LEVEL_1;
 
     this.cameras.main.setPostPipeline("CRTPipeline");
 
@@ -47,8 +54,8 @@ export class GameScene extends Phaser.Scene {
     // Platforms (drop-through)
     const platforms = this.physics.add.staticGroup();
     this.platBubbles = [];
-    for (let i = 0; i < LEVEL_1.platforms.length; i++) {
-      const p = LEVEL_1.platforms[i];
+    for (let i = 0; i < levelData.platforms.length; i++) {
+      const p = levelData.platforms[i];
       const plat = this.add.rectangle(
         p.x,
         p.y,
@@ -65,13 +72,13 @@ export class GameScene extends Phaser.Scene {
     this.platBubbles[0].setText("console.log(PLATFORM)");
 
     // Spinning platform (solid, not drop-through)
-    const sp = LEVEL_1.spinPlatform;
+    const sp = levelData.spinPlatform;
     this.spinPlat = this.add.rectangle(sp.x, sp.y, sp.w, PLATFORM_HEIGHT, COLORS.FILL);
     this.spinPlat.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
     this.physics.add.existing(this.spinPlat, true);
 
     // Goal sits on spinning platform (dynamic but frozen until spin)
-    const g = LEVEL_1.goal;
+    const g = levelData.goal;
     this.goalObj = this.add.sprite(g.x, g.y, "goal");
     this.goalObj.setDisplaySize(g.w, g.h);
     this.physics.add.existing(this.goalObj, false);
@@ -80,12 +87,12 @@ export class GameScene extends Phaser.Scene {
 
     this.player = new Player(
       this,
-      LEVEL_1.playerSpawn.x,
-      LEVEL_1.playerSpawn.y,
+      levelData.playerSpawn.x,
+      levelData.playerSpawn.y,
     );
 
     // Enemies
-    this.enemies = LEVEL_1.enemies.map(
+    this.enemies = levelData.enemies.map(
       (e) => new Enemy(this, e.x, e.y, e.patrolMin, e.patrolMax),
     );
 
@@ -124,12 +131,12 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.overlap(this.player.sprite, this.goalObj, () => {
       if (!this.goalReached) {
         this.goalReached = true;
-        this.player.bubble.setText("LEVEL\nCOMPLETE!");
+        this._levelComplete();
       }
     });
 
     // Circular saws (move in rectangle around platform)
-    this.saws = LEVEL_1.saws.map((s) => {
+    this.saws = levelData.saws.map((s) => {
       const pad = s.padding;
       const hw = s.w / 2 + pad;
       const hh = PLATFORM_HEIGHT / 2 + pad;
@@ -294,7 +301,28 @@ export class GameScene extends Phaser.Scene {
     deathText.setDepth(100);
 
     this.time.delayedCall(200, () => {
-      this.scene.restart();
+      this.scene.restart({ level: this.currentLevel });
+    });
+  }
+
+  _levelComplete() {
+    this.physics.pause();
+
+    const overlay = this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, 0x000000);
+    overlay.setDepth(99);
+
+    const nextLevel = this.currentLevel + 1;
+    const levelText = this.add.text(CENTER_X, CENTER_Y, String(nextLevel), {
+      fontFamily: "monospace",
+      fontSize: "500px",
+      color: "#ffffff",
+      fontStyle: "bold",
+    });
+    levelText.setOrigin(0.5);
+    levelText.setDepth(100);
+
+    this.time.delayedCall(200, () => {
+      this.scene.restart({ level: nextLevel });
     });
   }
 

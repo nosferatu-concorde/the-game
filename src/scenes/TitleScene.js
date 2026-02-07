@@ -33,7 +33,25 @@ export class TitleScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.input.keyboard.once("keydown-SPACE", () => {
-      this.scene.start("GameScene");
+      this._showLevelTransition();
+    });
+  }
+
+  _showLevelTransition() {
+    this.children.removeAll();
+
+    this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, 0x000000);
+
+    const levelText = this.add.text(CENTER_X, CENTER_Y, "1", {
+      fontFamily: "monospace",
+      fontSize: "500px",
+      color: "#ffffff",
+      fontStyle: "bold",
+    });
+    levelText.setOrigin(0.5);
+
+    this.time.delayedCall(200, () => {
+      this.scene.start("GameScene", { level: 1 });
     });
   }
 }

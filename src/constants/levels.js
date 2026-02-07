@@ -17,3 +17,25 @@ export const LEVEL_1 = {
   ],
   playerSpawn: { x: 640, y: 600 },
 };
+
+export const LEVEL_2 = {
+  platforms: [
+    { x: 150, y: 500, w: 150 },
+    { x: 400, y: 400, w: 150 },
+    { x: 700, y: 300, w: 200 },
+    { x: 1000, y: 400, w: 150 },
+    { x: 1100, y: 550, w: 100 },
+  ],
+  enemies: [
+    { x: 200, y: 680, patrolMin: 50, patrolMax: 350 },
+    { x: 700, y: 680, patrolMin: 500, patrolMax: 900 },
+    { x: 1100, y: 680, patrolMin: 950, patrolMax: 1230 },
+  ],
+  spinPlatform: { x: 640, y: 100, w: 180 },
+  goal: { x: 640, y: 60, w: 60, h: 60 },
+  saws: [
+    { x: 400, y: 400, w: 150, speed: 0.18, padding: 20 },
+    { x: 700, y: 300, w: 200, speed: 0.12, padding: 20 },
+  ],
+  playerSpawn: { x: 100, y: 600 },
+};
