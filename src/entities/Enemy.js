@@ -1,12 +1,11 @@
 import { SpeechBubble } from "../ui/SpeechBubble.js";
-import { COLORS, STROKE_WIDTH } from "../constants/styles.js";
 
 const WIDTH = 32;
 const HEIGHT = 32;
+const SCALE = 1.25;
 const PATROL_SPEED = 100;
 const CHASE_SPEED = 260;
-const Y_TOLERANCE = 20; // max vertical difference to count as "same level"
-const CHASE_SPIN_SPEED = 0.02; // radians per ms
+const Y_TOLERANCE = 40; // max vertical difference to count as "same level"
 
 export class Enemy {
   constructor(scene, x, y, patrolMin, patrolMax) {
@@ -17,21 +16,14 @@ export class Enemy {
     this.direction = "right";
     this.chasing = false;
     this.touching = false;
+    this.patrolFrame = 0;
+    this.patrolFrameTimer = 0;
 
-    this.sprite = scene.add.rectangle(x, y, WIDTH, HEIGHT, COLORS.ENEMY_FILL);
-    this.sprite.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
+    this.sprite = scene.add.image(x, y, "enemy_patrol1");
+    this.sprite.setScale(SCALE);
     scene.physics.add.existing(this.sprite);
     this.sprite.body.setCollideWorldBounds(true);
     this.sprite.body.setVelocityX(PATROL_SPEED);
-
-    // Direction indicator text
-    this.indicator = scene.add.text(x, y, ">", {
-      fontFamily: "monospace",
-      fontSize: "20px",
-      color: "#ffffff",
-      fontStyle: "bold",
-    });
-    this.indicator.setOrigin(0.5, 0.5);
 
     this.bubble = new SpeechBubble(scene, this.sprite);
     this.bubble.setLooping(this._getBubbleText(), 2000);
@@ -69,8 +61,8 @@ export class Enemy {
     return "patrol_right()";
   }
 
-  _updateIndicator() {
-    this.indicator.setPosition(this.sprite.x, this.sprite.y);
+  _setTexture(key) {
+    this.sprite.setTexture(key);
   }
 
   update(delta) {
@@ -82,7 +74,6 @@ export class Enemy {
     this.chasing = this._isFacingPlayer();
 
     if (this.chasing) {
-      // Chase the player
       const speed = CHASE_SPEED;
       if (this.player.sprite.x < this.sprite.x) {
         body.setVelocityX(-speed);
@@ -92,7 +83,6 @@ export class Enemy {
         newDirection = "right";
       }
     } else {
-      // Patrol
       if (this.sprite.x >= this.patrolMax) {
         body.setVelocityX(-PATROL_SPEED);
         newDirection = "left";
@@ -108,21 +98,30 @@ export class Enemy {
       wasTouching !== this.touching
     ) {
       this.direction = newDirection;
-      this.indicator.setText(this.direction === "right" ? ">" : "<");
       this.bubble.setLooping(this._getBubbleText(), 2000);
     }
 
-    // Spin when chasing, reset when patrolling
-    if (this.chasing) {
-      this.sprite.rotation += CHASE_SPIN_SPEED * delta;
-    } else if (this.sprite.rotation !== 0) {
-      this.sprite.rotation = 0;
+    // Immediately switch textures when chase state changes
+    if (wasChasing !== this.chasing) {
+      this.patrolFrameTimer = 0;
+      this.patrolFrame = 0;
+      this._setTexture(this.chasing ? "enemy_attack1" : "enemy_patrol1");
     }
 
-    this._updateIndicator();
-    this.bubble.update(delta);
+    // Animate frames
+    this.patrolFrameTimer += delta;
+    if (this.patrolFrameTimer >= 150) {
+      this.patrolFrameTimer = 0;
+      this.patrolFrame = 1 - this.patrolFrame;
+      if (this.chasing) {
+        this._setTexture(this.patrolFrame === 0 ? "enemy_attack1" : "enemy_attack2");
+      } else {
+        this._setTexture(this.patrolFrame === 0 ? "enemy_patrol1" : "enemy_patrol2");
+      }
+    }
 
-    // Reset touching after bubble text has been updated
+    this.sprite.setFlipX(this.direction === "left");
+    this.bubble.update(delta);
     this.touching = false;
   }
 }

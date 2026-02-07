@@ -25,6 +25,10 @@ export class GameScene extends Phaser.Scene {
     this.load.image("saw", "saw.png");
     this.load.image("ground", "ground.png");
     this.load.image("player", "player.png");
+    this.load.image("enemy_patrol1", "enemy_patrol1.png");
+    this.load.image("enemy_patrol2", "enemy_patrol2.png");
+    this.load.image("enemy_attack1", "enemy_attack1.png");
+    this.load.image("enemy_attack2", "enemy_attack2.png");
 
     // Pre-generate robot blood particle texture
     const gfx = this.add.graphics();
@@ -261,9 +265,14 @@ export class GameScene extends Phaser.Scene {
       const py = this.player.sprite.y;
       const sx = this.sawDeath.x;
       const sy = this.sawDeath.y;
-      const t = (2 * delta) / 1000;
-      this.player.sprite.x += (sx - px) * t;
-      this.player.sprite.y += (sy - py) * t;
+      const lerp = (2 * delta) / 1000;
+      this.player.sprite.x += (sx - px) * lerp;
+      this.player.sprite.y += (sy - py) * lerp;
+
+      const dt = 1 - this.sawDeathTimer / 1000;
+      this.player.sprite.setOrigin(0.5, 0.5);
+      this.player.sprite.setScale(1 + dt * 1.5);
+      this.player.sprite.rotation = dt * Math.PI * 2;
       const pcY =
         this.player.sprite.y -
         this.player.sprite.displayHeight * this.player.sprite.originY +
@@ -293,16 +302,8 @@ export class GameScene extends Phaser.Scene {
 
     this.wasGrounded = this.player.sprite.body.blocked.down;
     this.player.update(time, delta);
-    const anyChasing = this.enemies.some((e) => e.chasing);
     for (const enemy of this.enemies) {
       enemy.update(delta);
-    }
-
-    // Slight screen shake while any enemy is chasing
-    this.chaseShakeCooldown -= delta;
-    if (anyChasing && this.chaseShakeCooldown <= 0) {
-      this.cameras.main.shake(200, 0.001, false);
-      this.chaseShakeCooldown = 200;
     }
 
     // Update saws (rectangular path around platform)
