@@ -14,13 +14,12 @@ export class TitleScene extends Phaser.Scene {
 
   preload() {
     this.load.image("start-screen", "start-screen.png");
+    this.load.audio("song", "the-game-song.wav");
   }
 
   create() {
     this.add.image(CENTER_X, CENTER_Y, "start-screen").setDisplaySize(GAME_WIDTH, GAME_HEIGHT);
     this.cameras.main.setPostPipeline(CRTPipeline);
-
-    this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, 0x000000).setAlpha(0.3);
 
     const title = this.add
       .text(CENTER_X, CENTER_Y - 50, TITLE_TEXT, {
@@ -54,7 +53,11 @@ export class TitleScene extends Phaser.Scene {
       ease: "Sine.easeInOut",
     });
 
+    this.titleSong = this.sound.add("song", { loop: true, volume: 0.2 });
+    this.titleSong.play({ rate: 0.3 });
+
     this.input.keyboard.once("keydown-SPACE", () => {
+      this.titleSong.stop();
       this._showLevelTransition();
     });
   }
