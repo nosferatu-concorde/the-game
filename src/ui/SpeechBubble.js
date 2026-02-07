@@ -119,8 +119,11 @@ export class SpeechBubble {
 
     // Position collider at center of bubble
     const h = this.text.height + PADDING * 2;
-    this.collider.setPosition(x, y - h / 2);
-    this.collider.body.reset(x, y - h / 2);
+    const cx = x;
+    const cy = y - h / 2;
+    this.collider.setPosition(cx, cy);
+    this.collider.body.x = cx - this.collider.body.halfWidth;
+    this.collider.body.y = cy - this.collider.body.halfHeight;
   }
 
   getBounds() {
@@ -142,7 +145,8 @@ export class SpeechBubble {
     this.text.x += dx;
     this.text.y += dy;
     this.collider.setPosition(this.collider.x + dx, this.collider.y + dy);
-    this.collider.body.reset(this.collider.x, this.collider.y);
+    this.collider.body.x = this.collider.x - this.collider.body.halfWidth;
+    this.collider.body.y = this.collider.y - this.collider.body.halfHeight;
   }
 
   destroy() {

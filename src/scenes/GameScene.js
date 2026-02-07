@@ -21,6 +21,15 @@ export class GameScene extends Phaser.Scene {
     this.load.image("goal", "goal.png");
     this.load.image("saw", "saw.png");
     this.load.image("player", "player.png");
+
+    // Pre-generate robot blood particle texture
+    const gfx = this.add.graphics();
+    gfx.fillStyle(0x000000);
+    gfx.lineStyle(1, 0x000000);
+    gfx.fillRect(0, 0, 6, 6);
+    gfx.strokeRect(0, 0, 6, 6);
+    gfx.generateTexture("robot_blood", 6, 6);
+    gfx.destroy();
   }
 
   init(data) {
@@ -35,6 +44,7 @@ export class GameScene extends Phaser.Scene {
     this.wasGrounded = false;
     this.sawDeath = null;
     this.sawDeathTimer = 0;
+    this.chaseShakeCooldown = 0;
 
     const LEVELS = { 1: LEVEL_1, 2: LEVEL_2 };
     const levelData = LEVELS[this.currentLevel] || LEVEL_1;
@@ -272,8 +282,10 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Slight screen shake while any enemy is chasing
-    if (anyChasing) {
-      this.cameras.main.shake(80, 0.001, false);
+    this.chaseShakeCooldown -= delta;
+    if (anyChasing && this.chaseShakeCooldown <= 0) {
+      this.cameras.main.shake(200, 0.001, false);
+      this.chaseShakeCooldown = 200;
     }
 
     // Update saws (rectangular path around platform)
@@ -332,15 +344,6 @@ export class GameScene extends Phaser.Scene {
     this.sawDeath = sawSprite;
     this.sawDeathTimer = 1000;
     this.player.sprite.setDepth(25);
-
-    // Robot blood particles
-    const gfx = this.add.graphics();
-    gfx.fillStyle(0x000000);
-    gfx.lineStyle(1, 0x000000);
-    gfx.fillRect(0, 0, 6, 6);
-    gfx.strokeRect(0, 0, 6, 6);
-    gfx.generateTexture("robot_blood", 6, 6);
-    gfx.destroy();
 
     const playerCenterY = this.player.sprite.y - this.player.sprite.displayHeight * this.player.sprite.originY + this.player.sprite.displayHeight / 2;
     this.sawParticles = this.add.particles(this.player.sprite.x, playerCenterY, "robot_blood", {
