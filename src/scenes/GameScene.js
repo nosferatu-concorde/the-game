@@ -280,6 +280,15 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    if (this.goalCelebrationTimer > 0) {
+      this.goalCelebrationTimer -= delta;
+      this.cameras.main.shake(100, 0.004, false);
+      if (this.goalCelebrationTimer <= 0) {
+        this._goalTransition();
+      }
+      return;
+    }
+
     this.wasGrounded = this.player.sprite.body.blocked.down;
     this.player.update(time, delta);
     const anyChasing = this.enemies.some((e) => e.chasing);
@@ -422,6 +431,52 @@ export class GameScene extends Phaser.Scene {
 
   _levelComplete() {
     this.physics.pause();
+    this.goalCelebrationTimer = 1000;
+    this.player.sprite.setDepth(25);
+
+    const gx = this.goalObj.x;
+    const gy = this.goalObj.y;
+
+    zoomTo(this.cameras.main, gx, gy);
+
+    this.goalParticles = this.add.particles(gx, gy, "goal", {
+      speedX: {
+        onEmit: () => {
+          const s = Phaser.Math.Between(50, 400);
+          return Math.random() < 0.5 ? -s : s;
+        },
+      },
+      speedY: {
+        onEmit: () => {
+          const s = Phaser.Math.Between(50, 400);
+          return Math.random() < 0.5 ? -s : s;
+        },
+      },
+      emitZone: { type: "random", source: new Phaser.Geom.Circle(0, 0, 50) },
+      scale: { min: 0.2, max: 1.5 },
+      alpha: 1,
+      lifespan: { min: 500, max: 1000 },
+      frequency: 10,
+      quantity: 8,
+      rotate: { min: 0, max: 360 },
+      accelerationY: 200,
+      tint: [0xff0000, 0xff3366, 0xff6699, 0xcc0033],
+    });
+    this.goalParticles.setDepth(5);
+    this.goalObj.setDepth(20);
+
+    for (const bubble of this.allBubbles) {
+      bubble._setVisible(false);
+    }
+  }
+
+  _goalTransition() {
+    if (this.goalParticles) {
+      this.goalParticles.destroy();
+      this.goalParticles = null;
+    }
+
+    zoomReset(this.cameras.main);
 
     const overlay = this.add.rectangle(
       CENTER_X,

@@ -1,9 +1,9 @@
 export const COLORS = {
   FILL: 0xffffff,
   STROKE: 0x000000,
-  ENEMY_FILL: 0xffffff,
+  ENEMY_FILL: 0xff0000,
   GOAL_FILL: 0x00ff00,
-  BG: 0xffffff,
+  BG: 0xfffdca,
 };
 
 export const STROKE_WIDTH = 2;
