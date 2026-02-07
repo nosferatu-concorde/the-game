@@ -14,6 +14,7 @@ import { LEVEL_1, LEVEL_2 } from "../constants/levels.js";
 import { SpeechBubble } from "../ui/SpeechBubble.js";
 import { zoomTo, zoomReset } from "../utils/cameraZoom.js";
 import { CRTPipeline } from "../shaders/CRTPipeline.js";
+import { particleBurst } from "../utils/particleBurst.js";
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -360,33 +361,7 @@ export class GameScene extends Phaser.Scene {
       this.player.sprite.y -
       this.player.sprite.displayHeight * this.player.sprite.originY +
       this.player.sprite.displayHeight / 2;
-    this.sawParticles = this.add.particles(
-      this.player.sprite.x,
-      playerCenterY,
-      "robot_blood",
-      {
-        speedX: {
-          onEmit: () => {
-            const s = Phaser.Math.Between(50, 400);
-            return Math.random() < 0.5 ? -s : s;
-          },
-        },
-        speedY: {
-          onEmit: () => {
-            const s = Phaser.Math.Between(50, 400);
-            return Math.random() < 0.5 ? -s : s;
-          },
-        },
-        emitZone: { type: "random", source: new Phaser.Geom.Circle(0, 0, 50) },
-        scale: { start: 1.5, end: 0.2 },
-        alpha: 1,
-        lifespan: { min: 500, max: 1000 },
-        frequency: 10,
-        quantity: 8,
-        rotate: { min: 0, max: 360 },
-        accelerationY: 200,
-      },
-    );
+    this.sawParticles = particleBurst(this, this.player.sprite.x, playerCenterY, "robot_blood");
     this.sawParticles.setDepth(5);
     this.sawDeath.setDepth(20);
 
@@ -442,27 +417,8 @@ export class GameScene extends Phaser.Scene {
 
     zoomTo(this.cameras.main, gx, gy);
 
-    this.goalParticles = this.add.particles(gx, gy, "goal", {
-      speedX: {
-        onEmit: () => {
-          const s = Phaser.Math.Between(50, 400);
-          return Math.random() < 0.5 ? -s : s;
-        },
-      },
-      speedY: {
-        onEmit: () => {
-          const s = Phaser.Math.Between(50, 400);
-          return Math.random() < 0.5 ? -s : s;
-        },
-      },
-      emitZone: { type: "random", source: new Phaser.Geom.Circle(0, 0, 50) },
+    this.goalParticles = particleBurst(this, gx, gy, "goal", {
       scale: { min: 0.2, max: 1.5 },
-      alpha: 1,
-      lifespan: { min: 500, max: 1000 },
-      frequency: 10,
-      quantity: 8,
-      rotate: { min: 0, max: 360 },
-      accelerationY: 200,
       tint: [0xff0000, 0xff3366, 0xff6699, 0xcc0033],
     });
     this.goalParticles.setDepth(5);
