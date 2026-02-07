@@ -23,6 +23,10 @@ void main() {
     float scanline = 0.904 + 0.096 * step(0.5, fract(pixelY / 4.0));
     color *= scanline;
 
+    // Vignette - darken corners
+    vec2 vig = uv * (1.0 - uv);
+    float vignette = pow(vig.x * vig.y * 15.0, 0.25);
+    color *= vignette;
 
     gl_FragColor = vec4(color, 1.0);
 }
