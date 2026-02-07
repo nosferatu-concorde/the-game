@@ -52,6 +52,7 @@ export class GameScene extends Phaser.Scene {
     this.load.audio("robot_step2", "robot_step2.wav");
     this.load.audio("robot_step3", "robot_step3.wav");
     this.load.audio("robot_step4", "robot_step4.wav");
+    this.load.audio("song", "the-game-song.wav");
     this.load.audio("impact", "impact.mp3");
 
     // Pre-generate robot blood particle texture
@@ -86,6 +87,7 @@ export class GameScene extends Phaser.Scene {
     this.sawSound?.stop();
     this.munchingSound?.stop();
     this.munchingEcho?.stop();
+    this.bgSong?.stop();
     if (this.impactSound?.isPlaying) {
       this.tweens.add({
         targets: this.impactSound,
@@ -116,6 +118,9 @@ export class GameScene extends Phaser.Scene {
       this.sound.add("robot_step4"),
     ];
     this.robotStepCooldown = 0;
+    this.bgSong = this.sound.add("song", { loop: true, volume: 0.2 });
+    this.bgSong.play();
+    this.bgSongSway = 0;
 
     const LEVELS = {
       1: LEVEL_1,
@@ -518,6 +523,12 @@ export class GameScene extends Phaser.Scene {
       step.play({ volume: 0.35 });
       this.robotStepCooldown = 250;
     }
+    // Sway the background song detune
+    if (this.bgSong?.isPlaying) {
+      this.bgSongSway += delta * 0.001;
+      this.bgSong.setDetune(Math.sin(this.bgSongSway) * 50);
+    }
+
     for (const enemy of this.enemies) {
       enemy.update(delta);
     }
@@ -663,6 +674,7 @@ export class GameScene extends Phaser.Scene {
     this.sawSound?.stop();
     this.munchingSound?.stop();
     this.munchingEcho?.stop();
+    this.bgSong?.stop();
     if (this.impactSound?.isPlaying) {
       this.tweens.add({
         targets: this.impactSound,
@@ -738,6 +750,7 @@ export class GameScene extends Phaser.Scene {
     this.sawSound?.stop();
     this.munchingSound?.stop();
     this.munchingEcho?.stop();
+    this.bgSong?.stop();
     if (this.impactSound?.isPlaying) {
       this.tweens.add({
         targets: this.impactSound,
