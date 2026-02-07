@@ -4,6 +4,7 @@ import {
   CENTER_X,
   CENTER_Y,
 } from "../constants/config.js";
+import { CRTPipeline } from "../shaders/CRTPipeline.js";
 
 export class TitleScene extends Phaser.Scene {
   constructor() {
@@ -14,6 +15,7 @@ export class TitleScene extends Phaser.Scene {
 
 
     this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, 0x000000);
+    this.cameras.main.setPostPipeline(CRTPipeline);
 
     this.add
       .text(CENTER_X, CENTER_Y - 50, "if (!AI) THIS.GAME", {
