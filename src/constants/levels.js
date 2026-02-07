@@ -15,9 +15,6 @@ export const LEVEL_1 = {
   saws: [
     { x: 500, y: 450, w: 200, speed: 0.15, padding: 15 },
   ],
-  movingPlatforms: [
-    { x: 700, y: 250, w: 120, minX: 550, maxX: 850, speed: 120 },
-  ],
   playerSpawn: { x: 640, y: 600 },
 };
 

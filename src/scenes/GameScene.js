@@ -10,7 +10,18 @@ import {
   GRAVITY,
 } from "../constants/config.js";
 import { COLORS, STROKE_WIDTH } from "../constants/styles.js";
-import { LEVEL_1, LEVEL_2, LEVEL_3, LEVEL_4, LEVEL_5, LEVEL_6, LEVEL_7, LEVEL_8, LEVEL_9, LEVEL_10 } from "../constants/levels.js";
+import {
+  LEVEL_1,
+  LEVEL_2,
+  LEVEL_3,
+  LEVEL_4,
+  LEVEL_5,
+  LEVEL_6,
+  LEVEL_7,
+  LEVEL_8,
+  LEVEL_9,
+  LEVEL_10,
+} from "../constants/levels.js";
 import { SpeechBubble } from "../ui/SpeechBubble.js";
 import { zoomTo, zoomReset } from "../utils/cameraZoom.js";
 import { CRTPipeline } from "../shaders/CRTPipeline.js";
@@ -54,7 +65,18 @@ export class GameScene extends Phaser.Scene {
     this.sawDeathTimer = 0;
     this.chaseShakeCooldown = 0;
 
-    const LEVELS = { 1: LEVEL_1, 2: LEVEL_2, 3: LEVEL_3, 4: LEVEL_4, 5: LEVEL_5, 6: LEVEL_6, 7: LEVEL_7, 8: LEVEL_8, 9: LEVEL_9, 10: LEVEL_10 };
+    const LEVELS = {
+      1: LEVEL_1,
+      2: LEVEL_2,
+      3: LEVEL_3,
+      4: LEVEL_4,
+      5: LEVEL_5,
+      6: LEVEL_6,
+      7: LEVEL_7,
+      8: LEVEL_8,
+      9: LEVEL_9,
+      10: LEVEL_10,
+    };
     const levelData = LEVELS[this.currentLevel] || LEVEL_1;
 
     // Background (needed for PostFX pipeline)
@@ -62,7 +84,9 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.setPostPipeline(CRTPipeline);
 
     // Ground (always solid)
-    const ground = this.add.image(CENTER_X, GAME_HEIGHT, "ground").setOrigin(0.5, 1);
+    const ground = this.add
+      .image(CENTER_X, GAME_HEIGHT, "ground")
+      .setOrigin(0.5, 1);
     this.physics.add.existing(ground, true);
 
     // Platforms (drop-through)
@@ -97,7 +121,10 @@ export class GameScene extends Phaser.Scene {
     const GOAL_HOVER = 30;
     this.goalObj = this.add.sprite(g.x, g.y, "goal");
     this.physics.add.existing(this.goalObj, false);
-    this.goalObj.body.setSize(this.goalObj.width, this.goalObj.height + GOAL_HOVER);
+    this.goalObj.body.setSize(
+      this.goalObj.width,
+      this.goalObj.height + GOAL_HOVER,
+    );
     this.goalObj.body.setGravityY(-GRAVITY * 0.8);
 
     this.player = new Player(
@@ -205,7 +232,13 @@ export class GameScene extends Phaser.Scene {
       plat.body.setImmovable(true);
       plat.body.setAllowGravity(false);
       plat.body.setFriction(1);
-      return { sprite: plat, minX: mp.minX, maxX: mp.maxX, speed: mp.speed, dir: 1 };
+      return {
+        sprite: plat,
+        minX: mp.minX,
+        maxX: mp.maxX,
+        speed: mp.speed,
+        dir: 1,
+      };
     });
 
     // Moving platform colliders
@@ -245,11 +278,12 @@ export class GameScene extends Phaser.Scene {
     }
 
     // FPS counter (debug)
-    this.fpsText = this.add.text(10, 10, "", {
+    this.fpsText = this.add.text(40, 20, "", {
       fontFamily: "monospace",
       fontSize: "12px",
-      color: "#999999",
+      color: "#000000",
     });
+    this.fpsText.setOrigin(0, 0);
     this.fpsText.setDepth(200);
     this.fpsText.setScrollFactor(0);
 
@@ -320,7 +354,9 @@ export class GameScene extends Phaser.Scene {
       if (this.enemyAttackTimer >= 150) {
         this.enemyAttackTimer = 0;
         this.enemyAttackFrame = 1 - (this.enemyAttackFrame || 0);
-        this.enemyDeath.setTexture(this.enemyAttackFrame === 0 ? "enemy_attack1" : "enemy_attack2");
+        this.enemyDeath.setTexture(
+          this.enemyAttackFrame === 0 ? "enemy_attack1" : "enemy_attack2",
+        );
       }
 
       const px = this.player.sprite.x;
@@ -431,7 +467,12 @@ export class GameScene extends Phaser.Scene {
       this.player.sprite.y -
       this.player.sprite.displayHeight * this.player.sprite.originY +
       this.player.sprite.displayHeight / 2;
-    this.enemyParticles = particleBurst(this, this.player.sprite.x, playerCenterY, "robot_blood");
+    this.enemyParticles = particleBurst(
+      this,
+      this.player.sprite.x,
+      playerCenterY,
+      "robot_blood",
+    );
     this.enemyParticles.setDepth(5);
     enemySprite.setDepth(25);
     this.player.sprite.setDepth(20);
@@ -455,7 +496,12 @@ export class GameScene extends Phaser.Scene {
       this.player.sprite.y -
       this.player.sprite.displayHeight * this.player.sprite.originY +
       this.player.sprite.displayHeight / 2;
-    this.sawParticles = particleBurst(this, this.player.sprite.x, playerCenterY, "robot_blood");
+    this.sawParticles = particleBurst(
+      this,
+      this.player.sprite.x,
+      playerCenterY,
+      "robot_blood",
+    );
     this.sawParticles.setDepth(5);
     this.sawDeath.setDepth(20);
 
@@ -575,7 +621,6 @@ export class GameScene extends Phaser.Scene {
       duration: 2000,
       ease: "Cubic.easeOut",
     });
-
   }
 
   _clampBubble(bubble, triggerSpin = false) {

@@ -25,7 +25,7 @@ void main() {
 
     // Vignette - darken corners
     vec2 vig = uv * (1.0 - uv);
-    float vignette = pow(vig.x * vig.y * 15.0, 0.25);
+    float vignette = pow(vig.x * vig.y * 10.0, 0.4);
     color *= vignette;
 
     gl_FragColor = vec4(color, 1.0);
