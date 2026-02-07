@@ -41,6 +41,12 @@ export class SpeechBubble {
     this.visible = false;
     this.blinking = false;
 
+    // Looping state
+    this.loopTexts = null;
+    this.loopIndex = 0;
+    this.loopCooldown = 0;
+    this.loopTimer = 0;
+
     if (text) {
       this.setText(text);
     } else {
@@ -58,6 +64,14 @@ export class SpeechBubble {
     this.blinkTimer = 0;
     this.blinking = false;
     this._setVisible(true);
+  }
+
+  setLooping(texts, cooldown) {
+    this.loopTexts = Array.isArray(texts) ? texts : [texts];
+    this.loopIndex = 0;
+    this.loopCooldown = cooldown;
+    this.loopTimer = cooldown;
+    this.setText(this.loopTexts[0]);
   }
 
   _setVisible(val) {
@@ -93,6 +107,14 @@ export class SpeechBubble {
   update(delta) {
     if (!this.visible && !this.blinking) {
       this.deltaX = 0;
+      if (this.loopTexts) {
+        this.loopTimer -= delta;
+        if (this.loopTimer <= 0) {
+          this.loopIndex = (this.loopIndex + 1) % this.loopTexts.length;
+          this.setText(this.loopTexts[this.loopIndex]);
+          this.loopTimer = this.loopCooldown;
+        }
+      }
       return;
     }
 

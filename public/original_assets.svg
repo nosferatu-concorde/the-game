@@ -10,7 +10,7 @@
    inkscape:export-filename="player.png"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96"
-   inkscape:version="1.4.3 (1:1.4.3+202512261035+0d15f75042)"
+   inkscape:version="1.4.2 (ebf0e940, 2025-05-08)"
    sodipodi:docname="original_assets.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -27,13 +27,13 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="px"
      showguides="true"
-     inkscape:zoom="5.2090199"
-     inkscape:cx="1031.96"
-     inkscape:cy="551.4473"
-     inkscape:window-width="2560"
-     inkscape:window-height="1371"
+     inkscape:zoom="1.8416666"
+     inkscape:cx="1345.5204"
+     inkscape:cy="638.82354"
+     inkscape:window-width="1792"
+     inkscape:window-height="1062"
      inkscape:window-x="0"
-     inkscape:window-y="32"
+     inkscape:window-y="30"
      inkscape:window-maximized="1"
      inkscape:current-layer="layer1">
     <sodipodi:guide
@@ -290,5 +290,9 @@
        style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
        d="m 1161.7502,545.63287 v 8.36719"
        id="path48" />
+    <path
+       id="path3"
+       style="opacity:1;fill:#ffffff;stroke:#232328;stroke-width:2;stroke-dasharray:none"
+       d="m 1346.4994,576.89997 c -3.4965,3.92729 -2.5702,11.29109 2.0771,16.51099 l 2.1571,2.42295 12.6226,14.17797 12.6228,-14.17799 2.1571,-2.42295 c 4.6473,-5.21981 5.5736,-12.58367 2.0771,-16.51097 -3.4964,-3.92728 -10.0525,-2.88683 -14.6997,2.33299 l -2.1573,2.42297 -2.157,-2.42296 c -4.6472,-5.2198 -11.2033,-6.26029 -14.6998,-2.333 z" />
   </g>
 </svg>

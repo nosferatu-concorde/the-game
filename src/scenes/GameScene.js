@@ -7,6 +7,7 @@ import {
   CENTER_Y,
   GROUND_Y,
   PLATFORM_HEIGHT,
+  GRAVITY,
 } from "../constants/config.js";
 import { COLORS, STROKE_WIDTH } from "../constants/styles.js";
 import { LEVEL_1, LEVEL_2 } from "../constants/levels.js";
@@ -18,7 +19,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("goal", "goal.png");
+    this.load.image("goal", "heart.png");
     this.load.image("saw", "saw.png");
     this.load.image("player", "player.png");
 
@@ -39,7 +40,6 @@ export class GameScene extends Phaser.Scene {
   create() {
     this.isDead = false;
     this.goalReached = false;
-    this.goalLanded = false;
     this.spinActivated = false;
     this.wasGrounded = false;
     this.sawDeath = null;
@@ -48,8 +48,6 @@ export class GameScene extends Phaser.Scene {
 
     const LEVELS = { 1: LEVEL_1, 2: LEVEL_2 };
     const levelData = LEVELS[this.currentLevel] || LEVEL_1;
-
-
 
     // White background (needed for PostFX pipeline)
     this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, COLORS.BG);
@@ -67,7 +65,6 @@ export class GameScene extends Phaser.Scene {
 
     // Platforms (drop-through)
     const platforms = this.physics.add.staticGroup();
-    this.platBubbles = [];
     for (let i = 0; i < levelData.platforms.length; i++) {
       const p = levelData.platforms[i];
       const plat = this.add.rectangle(
@@ -79,25 +76,27 @@ export class GameScene extends Phaser.Scene {
       );
       plat.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
       platforms.add(plat);
-      const bubble = new SpeechBubble(this, plat, "", { minWidth: p.w });
-      this.platBubbles.push(bubble);
     }
-    this.currentPlatBubble = 0;
-    this.platBubbles[0].setText("console.log(PLATFORM)");
 
     // Spinning platform (solid, not drop-through)
     const sp = levelData.spinPlatform;
-    this.spinPlat = this.add.rectangle(sp.x, sp.y, sp.w, PLATFORM_HEIGHT, COLORS.FILL);
+    this.spinPlat = this.add.rectangle(
+      sp.x,
+      sp.y,
+      sp.w,
+      PLATFORM_HEIGHT,
+      COLORS.FILL,
+    );
     this.spinPlat.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
     this.physics.add.existing(this.spinPlat, true);
 
-    // Goal sits on spinning platform (dynamic but frozen until spin)
+    // Goal bounces on surfaces, falls when airborne
     const g = levelData.goal;
+    const GOAL_HOVER = 30;
     this.goalObj = this.add.sprite(g.x, g.y, "goal");
-    this.goalObj.setDisplaySize(g.w, g.h);
     this.physics.add.existing(this.goalObj, false);
-    this.goalObj.body.setAllowGravity(false);
-    this.goalObj.body.setImmovable(true);
+    this.goalObj.body.setSize(this.goalObj.width, this.goalObj.height + GOAL_HOVER);
+    this.goalObj.body.setGravityY(-GRAVITY * 0.8);
 
     this.player = new Player(
       this,
@@ -141,15 +140,16 @@ export class GameScene extends Phaser.Scene {
       }
     });
 
-    // Goal collides with ground and platforms when it falls
-    const goalLanded = () => {
-      if (this.spinActivated && !this.goalLanded) {
-        this.goalLanded = true;
-        this.cameras.main.shake(200, 0.003, false);
-      }
+    // Goal bounces on any surface
+    const goalBounceGravity = GRAVITY * 0.2;
+    const bounceVel = -Math.sqrt(2 * goalBounceGravity * 10);
+    const goalBounce = () => {
+      this.goalObj.body.setGravityY(-GRAVITY * 0.8);
+      this.goalObj.body.setVelocityY(bounceVel);
     };
-    this.physics.add.collider(this.goalObj, ground, goalLanded);
-    this.physics.add.collider(this.goalObj, platforms, goalLanded);
+    this.physics.add.collider(this.goalObj, ground, goalBounce);
+    this.physics.add.collider(this.goalObj, platforms, goalBounce);
+    this.physics.add.collider(this.goalObj, this.spinPlat, goalBounce);
 
     // Goal overlap with player
     this.physics.add.overlap(this.player.sprite, this.goalObj, () => {
@@ -178,7 +178,8 @@ export class GameScene extends Phaser.Scene {
       sawZone.body.moves = false;
       sawZone.body.setCircle(42);
 
-      const bubble = new SpeechBubble(this, sawImage, "while(true)\n  keep_going()");
+      const bubble = new SpeechBubble(this, sawImage);
+      bubble.setLooping("while(true)\n  keep_going()", 2000);
       this.physics.add.overlap(this.player.sprite, sawZone, () => {
         this._playerSawDie(sawImage);
       });
@@ -186,7 +187,6 @@ export class GameScene extends Phaser.Scene {
         sprite: sawImage,
         hitbox: sawZone,
         bubble,
-        bubbleCooldown: 0,
         dist: 0,
         cx: s.x,
         cy: s.y,
@@ -218,10 +218,10 @@ export class GameScene extends Phaser.Scene {
     }
 
     // FPS counter (debug)
-    this.fpsText = this.add.text(10, 10, '', {
-      fontFamily: 'monospace',
-      fontSize: '12px',
-      color: '#999999',
+    this.fpsText = this.add.text(10, 10, "", {
+      fontFamily: "monospace",
+      fontSize: "12px",
+      color: "#999999",
     });
     this.fpsText.setDepth(200);
     this.fpsText.setScrollFactor(0);
@@ -229,7 +229,6 @@ export class GameScene extends Phaser.Scene {
     // All speech bubbles are standable (top-only, with carry)
     this.allBubbles = [
       this.player.bubble,
-      ...this.platBubbles,
       ...this.enemies.map((e) => e.bubble),
       ...this.saws.map((s) => s.bubble),
     ];
@@ -244,7 +243,10 @@ export class GameScene extends Phaser.Scene {
           if (!bubble.visible) return false;
           const playerBottom = this.player.sprite.body.bottom;
           const bubbleTop = bubble.collider.body.top;
-          return this.player.sprite.body.velocity.y >= 0 && playerBottom <= bubbleTop + 8;
+          return (
+            this.player.sprite.body.velocity.y >= 0 &&
+            playerBottom <= bubbleTop + 8
+          );
         },
       );
     }
@@ -262,10 +264,13 @@ export class GameScene extends Phaser.Scene {
       const py = this.player.sprite.y;
       const sx = this.sawDeath.x;
       const sy = this.sawDeath.y;
-      const t = 2 * delta / 1000;
+      const t = (2 * delta) / 1000;
       this.player.sprite.x += (sx - px) * t;
       this.player.sprite.y += (sy - py) * t;
-      const pcY = this.player.sprite.y - this.player.sprite.displayHeight * this.player.sprite.originY + this.player.sprite.displayHeight / 2;
+      const pcY =
+        this.player.sprite.y -
+        this.player.sprite.displayHeight * this.player.sprite.originY +
+        this.player.sprite.displayHeight / 2;
       this.sawParticles.setPosition(this.player.sprite.x, pcY);
 
       if (this.sawDeathTimer <= 0) {
@@ -279,14 +284,6 @@ export class GameScene extends Phaser.Scene {
     const anyChasing = this.enemies.some((e) => e.chasing);
     for (const enemy of this.enemies) {
       enemy.update(delta);
-    }
-
-    // Platform speech bubble chain (loops)
-    const current = this.platBubbles[this.currentPlatBubble];
-    current.update(delta);
-    if (!current.visible && !current.blinking) {
-      this.currentPlatBubble = (this.currentPlatBubble + 1) % this.platBubbles.length;
-      this.platBubbles[this.currentPlatBubble].setText("console.log(PLATFORM)");
     }
 
     // Slight screen shake while any enemy is chasing
@@ -323,13 +320,6 @@ export class GameScene extends Phaser.Scene {
       saw.hitbox.x = x;
       saw.hitbox.y = y;
       saw.sprite.rotation += 0.01 * delta;
-      if (!saw.bubble.visible) {
-        saw.bubbleCooldown -= delta;
-        if (saw.bubbleCooldown <= 0) {
-          saw.bubble.setText("while(true)\n  keep_going()");
-          saw.bubbleCooldown = 2000;
-        }
-      }
       saw.bubble.update(delta);
     }
 
@@ -353,25 +343,43 @@ export class GameScene extends Phaser.Scene {
     this.sawDeathTimer = 1000;
     this.player.sprite.setDepth(25);
 
-    const playerCenterY = this.player.sprite.y - this.player.sprite.displayHeight * this.player.sprite.originY + this.player.sprite.displayHeight / 2;
-    this.sawParticles = this.add.particles(this.player.sprite.x, playerCenterY, "robot_blood", {
-      speedX: { onEmit: () => { const s = Phaser.Math.Between(50, 400); return Math.random() < 0.5 ? -s : s; } },
-      speedY: { onEmit: () => { const s = Phaser.Math.Between(50, 400); return Math.random() < 0.5 ? -s : s; } },
-      emitZone: { type: 'random', source: new Phaser.Geom.Circle(0, 0, 50) },
-      scale: { start: 1.5, end: 0.2 },
-      alpha: 1,
-      lifespan: { min: 500, max: 1000 },
-      frequency: 10,
-      quantity: 8,
-      rotate: { min: 0, max: 360 },
-      accelerationY: 200,
-    });
+    const playerCenterY =
+      this.player.sprite.y -
+      this.player.sprite.displayHeight * this.player.sprite.originY +
+      this.player.sprite.displayHeight / 2;
+    this.sawParticles = this.add.particles(
+      this.player.sprite.x,
+      playerCenterY,
+      "robot_blood",
+      {
+        speedX: {
+          onEmit: () => {
+            const s = Phaser.Math.Between(50, 400);
+            return Math.random() < 0.5 ? -s : s;
+          },
+        },
+        speedY: {
+          onEmit: () => {
+            const s = Phaser.Math.Between(50, 400);
+            return Math.random() < 0.5 ? -s : s;
+          },
+        },
+        emitZone: { type: "random", source: new Phaser.Geom.Circle(0, 0, 50) },
+        scale: { start: 1.5, end: 0.2 },
+        alpha: 1,
+        lifespan: { min: 500, max: 1000 },
+        frequency: 10,
+        quantity: 8,
+        rotate: { min: 0, max: 360 },
+        accelerationY: 200,
+      },
+    );
     this.sawParticles.setDepth(5);
     this.sawDeath.setDepth(20);
 
     const cam = this.cameras.main;
-    cam.pan(sawSprite.x, sawSprite.y, 800, 'Sine.easeInOut');
-    cam.zoomTo(3, 800, 'Sine.easeInOut');
+    cam.pan(sawSprite.x, sawSprite.y, 800, "Sine.easeInOut");
+    cam.zoomTo(3, 800, "Sine.easeInOut");
 
     for (const bubble of this.allBubbles) {
       bubble._setVisible(false);
@@ -393,7 +401,13 @@ export class GameScene extends Phaser.Scene {
     cam.pan(CENTER_X, CENTER_Y, 0);
     cam.zoomTo(1, 0);
 
-    const overlay = this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, 0x000000);
+    const overlay = this.add.rectangle(
+      CENTER_X,
+      CENTER_Y,
+      GAME_WIDTH,
+      GAME_HEIGHT,
+      0x000000,
+    );
     overlay.setDepth(99);
 
     const deathText = this.add.text(CENTER_X, CENTER_Y, "IF DEAD DEAD", {
@@ -413,7 +427,13 @@ export class GameScene extends Phaser.Scene {
   _levelComplete() {
     this.physics.pause();
 
-    const overlay = this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, 0x000000);
+    const overlay = this.add.rectangle(
+      CENTER_X,
+      CENTER_Y,
+      GAME_WIDTH,
+      GAME_HEIGHT,
+      0x000000,
+    );
     overlay.setDepth(99);
 
     const nextLevel = this.currentLevel + 1;
@@ -435,8 +455,9 @@ export class GameScene extends Phaser.Scene {
     this.spinActivated = true;
     this.cameras.main.shake(200, 0.003, false);
 
-    // Disable platform collision
+    // Disable platform collision, full gravity for the fall
     this.spinPlat.body.enable = false;
+    this.goalObj.body.setGravityY(0);
 
     // Spin the platform visual
     this.tweens.add({
@@ -446,9 +467,6 @@ export class GameScene extends Phaser.Scene {
       ease: "Cubic.easeOut",
     });
 
-    // Release the goal — let it fall
-    this.goalObj.body.setAllowGravity(true);
-    this.goalObj.body.setImmovable(false);
   }
 
   _clampBubble(bubble, triggerSpin = false) {
@@ -458,7 +476,12 @@ export class GameScene extends Phaser.Scene {
     // Check spinning platform
     if (!this.spinActivated && this.spinPlat.body.enable) {
       const p = this.spinPlat.body;
-      if (b.right > p.left && b.left < p.right && b.top < p.bottom && b.bottom > p.top) {
+      if (
+        b.right > p.left &&
+        b.left < p.right &&
+        b.top < p.bottom &&
+        b.bottom > p.top
+      ) {
         const offset = p.bottom - b.top;
         bubble.applyOffset(0, offset);
         if (triggerSpin) {
@@ -471,7 +494,12 @@ export class GameScene extends Phaser.Scene {
     // Check regular platforms
     for (const plat of this.platformGroup.getChildren()) {
       const p = plat.body;
-      if (b.right > p.left && b.left < p.right && b.top < p.bottom && b.bottom > p.top) {
+      if (
+        b.right > p.left &&
+        b.left < p.right &&
+        b.top < p.bottom &&
+        b.bottom > p.top
+      ) {
         const offset = p.bottom - b.top;
         bubble.applyOffset(0, offset);
         return offset;
