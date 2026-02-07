@@ -53,6 +53,7 @@ export class GameScene extends Phaser.Scene {
     this.load.audio("robot_step3", "robot_step3.wav");
     this.load.audio("robot_step4", "robot_step4.wav");
     this.load.audio("song", "the-game-song.wav");
+    this.load.audio("jump", "jump.mp3");
     this.load.audio("impact", "impact.mp3");
 
     // Pre-generate robot blood particle texture
@@ -118,8 +119,8 @@ export class GameScene extends Phaser.Scene {
       this.sound.add("robot_step4"),
     ];
     this.robotStepCooldown = 0;
-    this.bgSong = this.sound.add("song", { loop: true, volume: 0.2 });
-    this.bgSong.play();
+    this.bgSong = this.sound.add("song", { loop: true, volume: 0.35 });
+    this.bgSong.play({ rate: 0.3 });
     this.bgSongSway = 0;
 
     const LEVELS = {

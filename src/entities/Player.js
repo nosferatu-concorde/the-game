@@ -83,6 +83,7 @@ export class Player {
     if (jumpPressed && this.coyoteTimer > 0) {
       body.setVelocityY(JUMP_VELOCITY);
       this.coyoteTimer = 0;
+      this.scene.sound.play("jump", { rate: 0.6, detune: -600, volume: 0.45 });
     }
 
     const wasIdle = this.idle;
