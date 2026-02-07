@@ -12,28 +12,47 @@ export class TitleScene extends Phaser.Scene {
     super("TitleScene");
   }
 
+  preload() {
+    this.load.image("start-screen", "start-screen.png");
+  }
+
   create() {
-
-
-    this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, 0x000000);
+    this.add.image(CENTER_X, CENTER_Y, "start-screen").setDisplaySize(GAME_WIDTH, GAME_HEIGHT);
     this.cameras.main.setPostPipeline(CRTPipeline);
 
-    this.add
+    this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, 0x000000).setAlpha(0.5);
+
+    const title = this.add
       .text(CENTER_X, CENTER_Y - 50, TITLE_TEXT, {
         fontFamily: "monospace",
         fontSize: "90px",
         color: "#ffffff",
         fontStyle: "bold",
+        stroke: "#000000",
+        strokeThickness: 3,
+        align: "center",
       })
       .setOrigin(0.5);
 
-    this.add
+    const prompt = this.add
       .text(CENTER_X, CENTER_Y + 30, TITLE_PROMPT, {
         fontFamily: "monospace",
         fontSize: "16px",
         color: "#ffffff",
+        stroke: "#000000",
+        strokeThickness: 3,
+        align: "center",
       })
       .setOrigin(0.5);
+
+    this.tweens.add({
+      targets: [title, prompt],
+      scale: { from: 1, to: 1.05 },
+      duration: 800,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut",
+    });
 
     this.input.keyboard.once("keydown-SPACE", () => {
       this._showLevelTransition();
