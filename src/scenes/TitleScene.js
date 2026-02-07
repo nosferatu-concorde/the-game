@@ -20,7 +20,7 @@ export class TitleScene extends Phaser.Scene {
     this.add.image(CENTER_X, CENTER_Y, "start-screen").setDisplaySize(GAME_WIDTH, GAME_HEIGHT);
     this.cameras.main.setPostPipeline(CRTPipeline);
 
-    this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, 0x000000).setAlpha(0.5);
+    this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, 0x000000).setAlpha(0.3);
 
     const title = this.add
       .text(CENTER_X, CENTER_Y - 50, TITLE_TEXT, {

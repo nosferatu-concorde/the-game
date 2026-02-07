@@ -47,6 +47,7 @@ export class GameScene extends Phaser.Scene {
     this.load.audio("falling_heart", "falling-heart.mp3");
     this.load.audio("item_pickup", "item-pickup.mp3");
     this.load.audio("fairy", "fairy-sparkle.mp3");
+    this.load.audio("munching", "munching.mp3");
     this.load.audio("impact", "impact.mp3");
 
     // Pre-generate robot blood particle texture
@@ -79,6 +80,8 @@ export class GameScene extends Phaser.Scene {
 
   create() {
     this.sawSound?.stop();
+    this.munchingSound?.stop();
+    this.munchingEcho?.stop();
     if (this.impactSound?.isPlaying) {
       this.tweens.add({
         targets: this.impactSound,
@@ -101,6 +104,7 @@ export class GameScene extends Phaser.Scene {
     this.fallingHeartSound = this.sound.add("falling_heart");
     this.itemPickupSound = this.sound.add("item_pickup");
     this.fairySound = this.sound.add("fairy");
+    this.munchingSound = this.sound.add("munching");
 
     const LEVELS = {
       1: LEVEL_1,
@@ -562,6 +566,12 @@ export class GameScene extends Phaser.Scene {
   _playerEnemyDie(enemySprite) {
     if (this.isDead || this.goalReached) return;
     this.isDead = true;
+    this.munchingSound.play({ rate: 2, volume: 0.5, detune: -300 });
+    this.munchingEcho = this.sound.add("munching");
+    this.time.delayedCall(150, () => {
+      this.munchingEcho.play({ rate: 2, volume: 0.5, detune: -300 });
+    });
+    this.time.delayedCall(800, () => this.impactSound.play());
     this.physics.pause();
     this.enemyDeath = enemySprite;
     this.enemyDeathTimer = 1000;
@@ -632,6 +642,8 @@ export class GameScene extends Phaser.Scene {
     this.sawDeath = null;
     this.enemyDeath = null;
     this.sawSound?.stop();
+    this.munchingSound?.stop();
+    this.munchingEcho?.stop();
     if (this.impactSound?.isPlaying) {
       this.tweens.add({
         targets: this.impactSound,
@@ -670,6 +682,7 @@ export class GameScene extends Phaser.Scene {
   _levelComplete() {
     this.itemPickupSound.play();
     this.fairySound.play();
+    this.time.delayedCall(800, () => this.impactSound.play());
     this.physics.pause();
     this.goalCelebrationTimer = 1000;
     this.player.sprite.setDepth(25);
@@ -704,6 +717,8 @@ export class GameScene extends Phaser.Scene {
       this.goalParticles = null;
     }
     this.sawSound?.stop();
+    this.munchingSound?.stop();
+    this.munchingEcho?.stop();
     if (this.impactSound?.isPlaying) {
       this.tweens.add({
         targets: this.impactSound,
