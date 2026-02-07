@@ -11,7 +11,7 @@ export class TitleScene extends Phaser.Scene {
   }
 
   create() {
-    this.cameras.main.setPostPipeline("CRTPipeline");
+
 
     this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, 0x000000);
 

@@ -12,12 +12,11 @@ varying vec2 outTexCoord;
 void main() {
     vec2 uv = outTexCoord;
 
-    // Chromatic aberration
+    // Chromatic aberration (2 lookups instead of 3)
     float offset = 0.0010;
+    vec4 center = texture2D(uMainSampler, uv);
     float r = texture2D(uMainSampler, vec2(uv.x + offset, uv.y)).r;
-    float g = texture2D(uMainSampler, uv).g;
-    float b = texture2D(uMainSampler, vec2(uv.x - offset, uv.y)).b;
-    vec3 color = vec3(r, g, b);
+    vec3 color = vec3(r, center.g, center.b);
 
     // Scanlines - multiply to darken every other line (visible on white)
     float pixelY = uv.y * uResolution.y;

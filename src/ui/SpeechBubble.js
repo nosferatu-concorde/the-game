@@ -49,8 +49,11 @@ export class SpeechBubble {
   }
 
   setText(text) {
-    this.text.setText(text);
-    this._redraw();
+    const changed = this.text.text !== text;
+    if (changed) {
+      this.text.setText(text);
+      this._redraw();
+    }
     this.timer = DISPLAY_DURATION;
     this.blinkTimer = 0;
     this.blinking = false;
@@ -88,6 +91,11 @@ export class SpeechBubble {
   }
 
   update(delta) {
+    if (!this.visible && !this.blinking) {
+      this.deltaX = 0;
+      return;
+    }
+
     const x = this.target.x;
     const y = this.target.y - this.target.displayHeight * this.target.originY - TAIL_SIZE - 4;
 
@@ -107,6 +115,7 @@ export class SpeechBubble {
       if (this.blinkTimer <= 0) {
         this.blinking = false;
         this._setVisible(false);
+        return;
       } else {
         const on = Math.floor(this.blinkTimer / BLINK_INTERVAL) % 2 === 0;
         this._setVisible(on);

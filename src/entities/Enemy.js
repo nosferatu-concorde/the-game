@@ -70,7 +70,6 @@ export class Enemy {
 
   _updateIndicator() {
     this.indicator.setPosition(this.sprite.x, this.sprite.y);
-    this.indicator.setText(this.direction === "right" ? ">" : "<");
   }
 
   update(delta) {
@@ -108,6 +107,7 @@ export class Enemy {
       wasTouching !== this.touching
     ) {
       this.direction = newDirection;
+      this.indicator.setText(this.direction === "right" ? ">" : "<");
       this.bubble.setText(this._getBubbleText());
     }
 

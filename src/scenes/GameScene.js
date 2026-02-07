@@ -49,7 +49,7 @@ export class GameScene extends Phaser.Scene {
     const LEVELS = { 1: LEVEL_1, 2: LEVEL_2 };
     const levelData = LEVELS[this.currentLevel] || LEVEL_1;
 
-    this.cameras.main.setPostPipeline("CRTPipeline");
+
 
     // White background (needed for PostFX pipeline)
     this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, COLORS.BG);
@@ -217,6 +217,15 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
+    // FPS counter (debug)
+    this.fpsText = this.add.text(10, 10, '', {
+      fontFamily: 'monospace',
+      fontSize: '12px',
+      color: '#999999',
+    });
+    this.fpsText.setDepth(200);
+    this.fpsText.setScrollFactor(0);
+
     // All speech bubbles are standable (top-only, with carry)
     this.allBubbles = [
       this.player.bubble,
@@ -232,6 +241,7 @@ export class GameScene extends Phaser.Scene {
           this.player.sprite.x += bubble.deltaX;
         },
         () => {
+          if (!bubble.visible) return false;
           const playerBottom = this.player.sprite.body.bottom;
           const bubbleTop = bubble.collider.body.top;
           return this.player.sprite.body.velocity.y >= 0 && playerBottom <= bubbleTop + 8;
@@ -241,6 +251,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(time, delta) {
+    this.fpsText.setText(`${Math.round(this.game.loop.actualFps)} fps`);
+
     if (this.sawDeath) {
       this.sawDeathTimer -= delta;
       this.sawDeath.rotation += 0.03 * delta;
@@ -262,11 +274,7 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    const grounded = this.player.sprite.body.blocked.down;
-    if (!this.wasGrounded && grounded) {
-      this.cameras.main.shake(150, 0.002, false);
-    }
-    this.wasGrounded = grounded;
+    this.wasGrounded = this.player.sprite.body.blocked.down;
     this.player.update(time, delta);
     const anyChasing = this.enemies.some((e) => e.chasing);
     for (const enemy of this.enemies) {
