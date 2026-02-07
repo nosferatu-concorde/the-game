@@ -277,6 +277,23 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
+    // Hearts UI (top right) — level progression
+    this.hearts = [];
+    for (let i = 0; i < 10; i++) {
+      const heart = this.add.sprite(GAME_WIDTH - 30 - i * 30, 25, "goal");
+      heart.setScale(0.5);
+      heart.setDepth(200);
+      heart.setScrollFactor(0);
+      const levelNum = 10 - i;
+      if (levelNum < this.currentLevel) {
+        heart.setTint(0xff69b4);
+        heart.setAlpha(1);
+      } else {
+        heart.setAlpha(0.3);
+      }
+      this.hearts.push(heart);
+    }
+
     // FPS counter (debug)
     this.fpsText = this.add.text(40, 20, "", {
       fontFamily: "monospace",
@@ -556,6 +573,13 @@ export class GameScene extends Phaser.Scene {
     this.physics.pause();
     this.goalCelebrationTimer = 1000;
     this.player.sprite.setDepth(25);
+
+    // Light up the current level's heart
+    const heartIndex = 10 - this.currentLevel;
+    if (heartIndex >= 0 && heartIndex < this.hearts.length) {
+      this.hearts[heartIndex].setTint(0xff69b4);
+      this.hearts[heartIndex].setAlpha(1);
+    }
 
     const gx = this.goalObj.x;
     const gy = this.goalObj.y;
