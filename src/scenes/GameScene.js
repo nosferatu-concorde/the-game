@@ -112,7 +112,7 @@ export class GameScene extends Phaser.Scene {
       platforms,
       () => {
         if (this.player.sprite.body.blocked.up) {
-          this.cameras.main.shake(200, 0.004, false);
+          this.cameras.main.shake(150, 0.002, false);
         }
       },
       () => {
@@ -131,7 +131,7 @@ export class GameScene extends Phaser.Scene {
     const goalLanded = () => {
       if (this.spinActivated && !this.goalLanded) {
         this.goalLanded = true;
-        this.cameras.main.shake(300, 0.006, false);
+        this.cameras.main.shake(200, 0.003, false);
       }
     };
     this.physics.add.collider(this.goalObj, ground, goalLanded);
@@ -223,7 +223,7 @@ export class GameScene extends Phaser.Scene {
   update(time, delta) {
     const grounded = this.player.sprite.body.blocked.down;
     if (!this.wasGrounded && grounded) {
-      this.cameras.main.shake(200, 0.004, false);
+      this.cameras.main.shake(150, 0.002, false);
     }
     this.wasGrounded = grounded;
     this.player.update(time, delta);
@@ -242,7 +242,7 @@ export class GameScene extends Phaser.Scene {
 
     // Slight screen shake while any enemy is chasing
     if (anyChasing) {
-      this.cameras.main.shake(100, 0.002, false);
+      this.cameras.main.shake(80, 0.001, false);
     }
 
     // Update saws (rectangular path around platform)
@@ -286,7 +286,7 @@ export class GameScene extends Phaser.Scene {
     if (playerBubbleHit && this.player.sprite.body.velocity.y < 0) {
       this.player.sprite.body.velocity.y = 0;
       this.player.sprite.y += playerBubbleHit;
-      this.cameras.main.shake(200, 0.004, false);
+      this.cameras.main.shake(150, 0.002, false);
     }
     for (const enemy of this.enemies) {
       this._clampBubble(enemy.bubble);
@@ -338,7 +338,7 @@ export class GameScene extends Phaser.Scene {
 
   _activateSpinPlatform() {
     this.spinActivated = true;
-    this.cameras.main.shake(300, 0.006, false);
+    this.cameras.main.shake(200, 0.003, false);
 
     // Disable platform collision
     this.spinPlat.body.enable = false;

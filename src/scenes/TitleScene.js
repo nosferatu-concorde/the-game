@@ -16,18 +16,18 @@ export class TitleScene extends Phaser.Scene {
     this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, 0x000000);
 
     this.add
-      .text(CENTER_X, CENTER_Y - 60, "if (!AI) THIS.GAME", {
+      .text(CENTER_X, CENTER_Y - 50, "if (!AI) THIS.GAME", {
         fontFamily: "monospace",
-        fontSize: "120px",
+        fontSize: "90px",
         color: "#ffffff",
         fontStyle: "bold",
       })
       .setOrigin(0.5);
 
     this.add
-      .text(CENTER_X, CENTER_Y + 40, "/* SPACE to begin (fix later) */", {
+      .text(CENTER_X, CENTER_Y + 30, "/* SPACE to begin (fix later) */", {
         fontFamily: "monospace",
-        fontSize: "18px",
+        fontSize: "16px",
         color: "#ffffff",
       })
       .setOrigin(0.5);
