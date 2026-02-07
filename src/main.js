@@ -26,6 +26,9 @@ const config = {
       debug: false,
     },
   },
+  audio: {
+    disableWebAudio: false,
+  },
   pipeline: [CRTPipeline],
   scene: [TitleScene, GameScene],
 };

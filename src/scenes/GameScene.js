@@ -42,6 +42,8 @@ export class GameScene extends Phaser.Scene {
     this.load.image("enemy_patrol2", "enemy_patrol2.png");
     this.load.image("enemy_attack1", "enemy_attack1.png");
     this.load.image("enemy_attack2", "enemy_attack2.png");
+    this.load.audio("saw_sfx", "saw.mp3");
+    this.load.audio("impact", "impact.mp3");
 
     // Pre-generate robot blood particle texture
     const gfx = this.add.graphics();
@@ -72,6 +74,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   create() {
+    this.sawSound?.stop();
+    if (this.impactSound?.isPlaying) {
+      this.tweens.add({
+        targets: this.impactSound,
+        volume: 0,
+        duration: 700,
+        onComplete: () => this.impactSound?.stop(),
+      });
+    }
     this.isDead = false;
     this.goalReached = false;
     this.spinActivated = false;
@@ -80,6 +91,8 @@ export class GameScene extends Phaser.Scene {
     this.sawDeathTimer = 0;
     this.chaseShakeCooldown = 0;
     this.halfwayWaiting = false;
+    this.sawSound = this.sound.add("saw_sfx");
+    this.impactSound = this.sound.add("impact");
 
     const LEVELS = {
       1: LEVEL_1,
@@ -567,6 +580,8 @@ export class GameScene extends Phaser.Scene {
   _playerSawDie(sawSprite) {
     if (this.isDead || this.goalReached) return;
     this.isDead = true;
+    this.sawSound.play();
+    this.time.delayedCall(800, () => this.impactSound.play());
     this.physics.pause();
     this.sawDeath = sawSprite;
     this.sawDeathTimer = 1000;
@@ -605,6 +620,15 @@ export class GameScene extends Phaser.Scene {
     }
     this.sawDeath = null;
     this.enemyDeath = null;
+    this.sawSound?.stop();
+    if (this.impactSound?.isPlaying) {
+      this.tweens.add({
+        targets: this.impactSound,
+        volume: 0,
+        duration: 700,
+        onComplete: () => this.impactSound?.stop(),
+      });
+    }
     this.physics.pause();
 
     zoomReset(this.cameras.main);
@@ -665,6 +689,15 @@ export class GameScene extends Phaser.Scene {
     if (this.goalParticles) {
       this.goalParticles.destroy();
       this.goalParticles = null;
+    }
+    this.sawSound?.stop();
+    if (this.impactSound?.isPlaying) {
+      this.tweens.add({
+        targets: this.impactSound,
+        volume: 0,
+        duration: 700,
+        onComplete: () => this.impactSound?.stop(),
+      });
     }
 
     zoomReset(this.cameras.main);

@@ -8,3 +8,5 @@ To run the game clone the repo then run
 Play the game at itch.io (after the game jam)
 
 https://nosferatu-concorde.itch.io/the-game-jam-game
+
+The project uses sound effects from pixabay.com. Check their user licence https://pixabay.com/service/terms/.
