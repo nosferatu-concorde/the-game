@@ -215,7 +215,7 @@ export class GameScene extends Phaser.Scene {
       this.physics.add.collider(enemy.sprite, platforms);
       this.physics.add.overlap(this.player.sprite, enemy.sprite, () => {
         enemy.onPlayerContact();
-        this._playerDie();
+        this._playerEnemyDie(enemy.sprite);
       });
     }
 
@@ -286,6 +286,43 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    if (this.enemyDeath) {
+      this.enemyDeathTimer -= delta;
+      this.cameras.main.shake(100, 0.008, false);
+
+      // Animate enemy attack frames
+      this.enemyAttackTimer = (this.enemyAttackTimer || 0) + delta;
+      if (this.enemyAttackTimer >= 150) {
+        this.enemyAttackTimer = 0;
+        this.enemyAttackFrame = 1 - (this.enemyAttackFrame || 0);
+        this.enemyDeath.setTexture(this.enemyAttackFrame === 0 ? "enemy_attack1" : "enemy_attack2");
+      }
+
+      const px = this.player.sprite.x;
+      const py = this.player.sprite.y;
+      const ex = this.enemyDeath.x;
+      const ey = this.enemyDeath.y;
+      const lerp = (2 * delta) / 1000;
+      this.player.sprite.x += (ex - px) * lerp;
+      this.player.sprite.y += (ey - py) * lerp;
+
+      const dt = 1 - this.enemyDeathTimer / 1000;
+      this.enemyDeath.setScale(1.25 + dt * 2);
+      this.player.sprite.setOrigin(0.5, 0.5);
+      this.player.sprite.setScale(1 + dt * 1.5);
+      this.player.sprite.rotation = dt * Math.PI * 2;
+      const pcY =
+        this.player.sprite.y -
+        this.player.sprite.displayHeight * this.player.sprite.originY +
+        this.player.sprite.displayHeight / 2;
+      this.enemyParticles.setPosition(this.player.sprite.x, pcY);
+
+      if (this.enemyDeathTimer <= 0) {
+        this._playerDie();
+      }
+      return;
+    }
+
     if (this.goalCelebrationTimer > 0) {
       this.goalCelebrationTimer -= delta;
       this.cameras.main.shake(100, 0.004, false);
@@ -349,6 +386,30 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  _playerEnemyDie(enemySprite) {
+    if (this.isDead) return;
+    this.isDead = true;
+    this.physics.pause();
+    this.enemyDeath = enemySprite;
+    this.enemyDeathTimer = 1000;
+    this.player.sprite.setDepth(25);
+
+    const playerCenterY =
+      this.player.sprite.y -
+      this.player.sprite.displayHeight * this.player.sprite.originY +
+      this.player.sprite.displayHeight / 2;
+    this.enemyParticles = particleBurst(this, this.player.sprite.x, playerCenterY, "robot_blood");
+    this.enemyParticles.setDepth(5);
+    enemySprite.setDepth(25);
+    this.player.sprite.setDepth(20);
+
+    zoomTo(this.cameras.main, enemySprite.x, enemySprite.y);
+
+    for (const bubble of this.allBubbles) {
+      bubble._setVisible(false);
+    }
+  }
+
   _playerSawDie(sawSprite) {
     if (this.isDead) return;
     this.isDead = true;
@@ -373,13 +434,18 @@ export class GameScene extends Phaser.Scene {
   }
 
   _playerDie() {
-    if (this.isDead && !this.sawDeath) return;
+    if (this.isDead && !this.sawDeath && !this.enemyDeath) return;
     this.isDead = true;
     if (this.sawParticles) {
       this.sawParticles.destroy();
       this.sawParticles = null;
     }
+    if (this.enemyParticles) {
+      this.enemyParticles.destroy();
+      this.enemyParticles = null;
+    }
     this.sawDeath = null;
+    this.enemyDeath = null;
     this.physics.pause();
 
     zoomReset(this.cameras.main);
