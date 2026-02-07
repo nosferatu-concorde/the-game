@@ -26,6 +26,7 @@ import { SpeechBubble } from "../ui/SpeechBubble.js";
 import { zoomTo, zoomReset } from "../utils/cameraZoom.js";
 import { CRTPipeline } from "../shaders/CRTPipeline.js";
 import { particleBurst } from "../utils/particleBurst.js";
+import { SAW_LOOP, DEATH_TEXT } from "../constants/dialogue.js";
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -231,7 +232,7 @@ export class GameScene extends Phaser.Scene {
       sawZone.body.setCircle(42);
 
       const bubble = new SpeechBubble(this, sawImage);
-      bubble.setLooping("while(true)\n  keep_going()", 2000);
+      bubble.setLooping(SAW_LOOP, 2000);
       this.physics.add.overlap(this.player.sprite, sawZone, () => {
         this._playerSawDie(sawImage);
       });
@@ -606,7 +607,7 @@ export class GameScene extends Phaser.Scene {
     );
     overlay.setDepth(99);
 
-    const deathText = this.add.text(CENTER_X, CENTER_Y, "IF DEAD DEAD", {
+    const deathText = this.add.text(CENTER_X, CENTER_Y, DEATH_TEXT, {
       fontFamily: "monospace",
       fontSize: "120px",
       color: "#ffffff",

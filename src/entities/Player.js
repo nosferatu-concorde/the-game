@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { SpeechBubble } from "../ui/SpeechBubble.js";
+import { PLAYER_IDLE } from "../constants/dialogue.js";
 
 const WIDTH = 44;
 const HEIGHT = 126;
@@ -96,7 +97,7 @@ export class Player {
 
     this.idle = still && this.stillTimer >= IDLE_DELAY;
     if (this.idle && !wasIdle) {
-      this.bubble.setText("IF (idle)\n  start.idling()");
+      this.bubble.setText(PLAYER_IDLE);
     }
 
     if (this.idle) {

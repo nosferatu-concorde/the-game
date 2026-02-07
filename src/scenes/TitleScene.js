@@ -5,6 +5,7 @@ import {
   CENTER_Y,
 } from "../constants/config.js";
 import { CRTPipeline } from "../shaders/CRTPipeline.js";
+import { TITLE_TEXT, TITLE_PROMPT } from "../constants/dialogue.js";
 
 export class TitleScene extends Phaser.Scene {
   constructor() {
@@ -18,7 +19,7 @@ export class TitleScene extends Phaser.Scene {
     this.cameras.main.setPostPipeline(CRTPipeline);
 
     this.add
-      .text(CENTER_X, CENTER_Y - 50, "if (!AI) THIS.GAME", {
+      .text(CENTER_X, CENTER_Y - 50, TITLE_TEXT, {
         fontFamily: "monospace",
         fontSize: "90px",
         color: "#ffffff",
@@ -27,7 +28,7 @@ export class TitleScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.add
-      .text(CENTER_X, CENTER_Y + 30, "/* SPACE to begin (fix later) */", {
+      .text(CENTER_X, CENTER_Y + 30, TITLE_PROMPT, {
         fontFamily: "monospace",
         fontSize: "16px",
         color: "#ffffff",

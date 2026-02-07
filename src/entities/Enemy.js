@@ -1,4 +1,9 @@
 import { SpeechBubble } from "../ui/SpeechBubble.js";
+import {
+  ENEMY_CHASE,
+  ENEMY_PATROL_LEFT,
+  ENEMY_PATROL_RIGHT,
+} from "../constants/dialogue.js";
 
 const WIDTH = 32;
 const HEIGHT = 32;
@@ -49,16 +54,13 @@ export class Enemy {
   }
 
   _getBubbleText() {
-    if (this.touching) {
-      return "KILL, KILL, KILL!";
-    }
-    if (this.chasing) {
-      return "computer_overlords\nKILL KILL KILL";
+    if (this.touching || this.chasing) {
+      return ENEMY_CHASE;
     }
     if (this.direction === "left") {
-      return "patrol_left()";
+      return ENEMY_PATROL_LEFT;
     }
-    return "patrol_right()";
+    return ENEMY_PATROL_RIGHT;
   }
 
   _setTexture(key) {
