@@ -146,6 +146,7 @@ export class GameScene extends Phaser.Scene {
     const g = levelData.goal;
     const GOAL_HOVER = 30;
     this.goalObj = this.add.sprite(g.x, g.y, "goal");
+    this.goalObj.setTint(0xff1493);
     this.physics.add.existing(this.goalObj, false);
     this.goalObj.body.setSize(
       this.goalObj.width,
@@ -327,7 +328,7 @@ export class GameScene extends Phaser.Scene {
       heart.setScrollFactor(0);
       const levelNum = 10 - i;
       if (levelNum < this.currentLevel) {
-        heart.setTint(0xff69b4);
+        heart.setTint(0xff1493);
         heart.setAlpha(1);
       } else {
         heart.setAlpha(0.3);
