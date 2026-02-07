@@ -279,6 +279,12 @@ export class GameScene extends Phaser.Scene {
     if (this.goalCelebrationTimer > 0) {
       this.goalCelebrationTimer -= delta;
       this.cameras.main.shake(100, 0.004, false);
+
+      const t = 1 - this.goalCelebrationTimer / 1000;
+      this.player.sprite.setOrigin(0.5, 0.5);
+      this.player.sprite.setScale(1 + t * 1.5);
+      this.player.sprite.rotation = t * Math.PI * 2;
+
       if (this.goalCelebrationTimer <= 0) {
         this._goalTransition();
       }
