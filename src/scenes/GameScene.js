@@ -19,6 +19,7 @@ export class GameScene extends Phaser.Scene {
 
   preload() {
     this.load.image("goal", "goal.png");
+    this.load.image("saw", "saw.png");
   }
 
   init(data) {
@@ -154,17 +155,22 @@ export class GameScene extends Phaser.Scene {
       const rectH = hh * 2;
       const perimeter = (rectW + rectH) * 2;
 
-      const saw = this.add.circle(s.x - hw, s.y - hh, 14, COLORS.ENEMY_FILL);
-      saw.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
-      this.physics.add.existing(saw, false);
-      saw.body.setAllowGravity(false);
-      saw.body.setCircle(14);
-      const bubble = new SpeechBubble(this, saw, "while(true)\n  keep_going()");
-      this.physics.add.overlap(this.player.sprite, saw, () => {
+      const sawImage = this.add.image(s.x - hw, s.y - hh, "saw");
+      sawImage.setDisplaySize(84, 84);
+
+      const sawZone = this.add.zone(s.x - hw, s.y - hh, 84, 84);
+      this.physics.add.existing(sawZone, false);
+      sawZone.body.setAllowGravity(false);
+      sawZone.body.moves = false;
+      sawZone.body.setCircle(42);
+
+      const bubble = new SpeechBubble(this, sawImage, "while(true)\n  keep_going()");
+      this.physics.add.overlap(this.player.sprite, sawZone, () => {
         this._playerDie();
       });
       return {
-        sprite: saw,
+        sprite: sawImage,
+        hitbox: sawZone,
         bubble,
         bubbleCooldown: 0,
         dist: 0,
@@ -269,7 +275,8 @@ export class GameScene extends Phaser.Scene {
       }
       saw.sprite.x = x;
       saw.sprite.y = y;
-      saw.sprite.body.reset(x, y);
+      saw.hitbox.x = x;
+      saw.hitbox.y = y;
       saw.sprite.rotation += 0.01 * delta;
       if (!saw.bubble.visible) {
         saw.bubbleCooldown -= delta;
