@@ -50,6 +50,20 @@ export class GameScene extends Phaser.Scene {
     gfx.strokeRect(0, 0, 6, 6);
     gfx.generateTexture("robot_blood", 6, 6);
     gfx.destroy();
+
+    // Generate diagonal stripe texture for platforms
+    const size = 32;
+    const stripeGfx = this.add.graphics();
+    // White background
+    stripeGfx.fillStyle(0xffffff);
+    stripeGfx.fillRect(0, 0, size, size);
+    // Dark yellow candy stripes
+    stripeGfx.lineStyle(4, 0xc4b060);
+    for (let i = -size; i < size * 2; i += 10) {
+      stripeGfx.lineBetween(i, 0, i + size, size);
+    }
+    stripeGfx.generateTexture("platform_stripes", size, size);
+    stripeGfx.destroy();
   }
 
   init(data) {
@@ -91,30 +105,42 @@ export class GameScene extends Phaser.Scene {
 
     // Platforms (drop-through)
     const platforms = this.physics.add.staticGroup();
+    this.platformTileSprites = [];
     for (let i = 0; i < levelData.platforms.length; i++) {
       const p = levelData.platforms[i];
-      const plat = this.add.rectangle(
+      const plat = this.add.tileSprite(
         p.x,
         p.y,
         p.w,
         PLATFORM_HEIGHT,
-        COLORS.FILL,
+        "platform_stripes",
       );
-      plat.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
       platforms.add(plat);
+      this.platformTileSprites.push(plat);
+      // Stroke border overlay
+      const border = this.add.graphics();
+      border.lineStyle(STROKE_WIDTH, COLORS.STROKE);
+      border.strokeRect(p.x - p.w / 2, p.y - PLATFORM_HEIGHT / 2, p.w, PLATFORM_HEIGHT);
+      plat._border = border;
     }
 
     // Spinning platform (solid, not drop-through)
     const sp = levelData.spinPlatform;
-    this.spinPlat = this.add.rectangle(
+    this.spinPlat = this.add.tileSprite(
       sp.x,
       sp.y,
       sp.w,
       PLATFORM_HEIGHT,
-      COLORS.FILL,
+      "platform_stripes",
     );
-    this.spinPlat.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
     this.physics.add.existing(this.spinPlat, true);
+    this.platformTileSprites.push(this.spinPlat);
+    // Stroke border for spin platform (as a child-like graphics that follows it)
+    this.spinPlatBorder = this.add.graphics();
+    this.spinPlatBorder.lineStyle(STROKE_WIDTH, COLORS.STROKE);
+    this.spinPlatBorder.strokeRect(-sp.w / 2, -PLATFORM_HEIGHT / 2, sp.w, PLATFORM_HEIGHT);
+    this.spinPlatBorder.setPosition(sp.x, sp.y);
+    this.spinPlat._border = this.spinPlatBorder;
 
     // Goal bounces on surfaces, falls when airborne
     const g = levelData.goal;
@@ -142,9 +168,12 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.collider(
       this.player.sprite,
       platforms,
-      () => {
+      (playerSprite, platform) => {
         if (this.player.sprite.body.blocked.up) {
           this.cameras.main.shake(150, 0.002, false);
+        }
+        if (!this.wasGrounded) {
+          this._platformBounce(platform);
         }
       },
       () => {
@@ -156,6 +185,9 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.collider(this.player.sprite, this.spinPlat, () => {
       if (this.player.sprite.body.velocity.y < 0 && !this.spinActivated) {
         this._activateSpinPlatform();
+      }
+      if (!this.wasGrounded) {
+        this._platformBounce(this.spinPlat);
       }
     });
 
@@ -220,20 +252,26 @@ export class GameScene extends Phaser.Scene {
 
     // Moving platforms (dynamic but immovable)
     this.movingPlatforms = (levelData.movingPlatforms || []).map((mp) => {
-      const plat = this.add.rectangle(
+      const plat = this.add.tileSprite(
         mp.x,
         mp.y,
         mp.w,
         PLATFORM_HEIGHT,
-        COLORS.FILL,
+        "platform_stripes",
       );
-      plat.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
       this.physics.add.existing(plat, false);
       plat.body.setImmovable(true);
       plat.body.setAllowGravity(false);
       plat.body.setFriction(1);
+      this.platformTileSprites.push(plat);
+      // Stroke border that follows the moving platform
+      const border = this.add.graphics();
+      border.lineStyle(STROKE_WIDTH, COLORS.STROKE);
+      border.strokeRect(-mp.w / 2, -PLATFORM_HEIGHT / 2, mp.w, PLATFORM_HEIGHT);
+      border.setPosition(mp.x, mp.y);
       return {
         sprite: plat,
+        border,
         minX: mp.minX,
         maxX: mp.maxX,
         speed: mp.speed,
@@ -249,6 +287,9 @@ export class GameScene extends Phaser.Scene {
         () => {
           if (this.player.sprite.body.blocked.up) {
             this.cameras.main.shake(150, 0.002, false);
+          }
+          if (!this.wasGrounded) {
+            this._platformBounce(mp.sprite);
           }
         },
         () => !this.player.isDropping,
@@ -422,12 +463,21 @@ export class GameScene extends Phaser.Scene {
       enemy.update(delta);
     }
 
+    // Animate platform stripe scrolling
+    const stripeSpeed = 0.03;
+    for (const ts of this.platformTileSprites) {
+      ts.tilePositionX += delta * stripeSpeed;
+      ts.tilePositionY += delta * stripeSpeed;
+    }
+
     // Update moving platforms
     for (const mp of this.movingPlatforms) {
       const x = mp.sprite.x;
       if (x >= mp.maxX) mp.dir = -1;
       else if (x <= mp.minX) mp.dir = 1;
       mp.sprite.body.setVelocityX(mp.speed * mp.dir);
+      // Keep border in sync with moving platform
+      mp.border.setPosition(mp.sprite.x, mp.sprite.y);
     }
 
     // Update saws (rectangular path around platform)
@@ -638,12 +688,29 @@ export class GameScene extends Phaser.Scene {
     this.spinPlat.body.enable = false;
     this.goalObj.body.setGravityY(0);
 
-    // Spin the platform visual
+    // Spin the platform visual (and its border)
     this.tweens.add({
-      targets: this.spinPlat,
+      targets: [this.spinPlat, this.spinPlatBorder],
       rotation: Math.PI * 4,
       duration: 2000,
       ease: "Cubic.easeOut",
+    });
+  }
+
+  _platformBounce(plat) {
+    if (plat._bouncing) return;
+    plat._bouncing = true;
+    const targets = [plat];
+    if (plat._border) targets.push(plat._border);
+    this.tweens.add({
+      targets,
+      y: "+=3",
+      duration: 80,
+      yoyo: true,
+      ease: "Sine.easeOut",
+      onComplete: () => {
+        plat._bouncing = false;
+      },
     });
   }
 
