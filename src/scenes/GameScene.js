@@ -43,6 +43,8 @@ export class GameScene extends Phaser.Scene {
     this.load.image("enemy_attack1", "enemy_attack1.png");
     this.load.image("enemy_attack2", "enemy_attack2.png");
     this.load.audio("saw_sfx", "saw.mp3");
+    this.load.audio("error", "error.mp3");
+    this.load.audio("falling_heart", "falling-heart.mp3");
     this.load.audio("impact", "impact.mp3");
 
     // Pre-generate robot blood particle texture
@@ -93,6 +95,8 @@ export class GameScene extends Phaser.Scene {
     this.halfwayWaiting = false;
     this.sawSound = this.sound.add("saw_sfx");
     this.impactSound = this.sound.add("impact");
+    this.errorSound = this.sound.add("error");
+    this.fallingHeartSound = this.sound.add("falling_heart");
 
     const LEVELS = {
       1: LEVEL_1,
@@ -187,6 +191,7 @@ export class GameScene extends Phaser.Scene {
       (playerSprite, platform) => {
         if (this.player.sprite.body.blocked.up) {
           this.cameras.main.shake(150, 0.002, false);
+          this.errorSound.play();
         }
         if (!this.wasGrounded) {
           this._platformBounce(platform);
@@ -201,6 +206,7 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.collider(this.player.sprite, this.spinPlat, () => {
       if (this.player.sprite.body.velocity.y < 0 && !this.spinActivated && this.player.sprite.body.blocked.up) {
         this._activateSpinPlatform();
+        this.errorSound.play();
       }
       if (!this.wasGrounded) {
         this._platformBounce(this.spinPlat);
@@ -542,6 +548,7 @@ export class GameScene extends Phaser.Scene {
       this.player.sprite.body.velocity.y = 0;
       this.player.sprite.y += playerBubbleHit;
       this.cameras.main.shake(150, 0.002, false);
+      this.errorSound.play();
     }
     for (const enemy of this.enemies) {
       this._clampBubble(enemy.bubble);
@@ -766,6 +773,7 @@ export class GameScene extends Phaser.Scene {
   _activateSpinPlatform() {
     this.spinActivated = true;
     this.cameras.main.shake(200, 0.003, false);
+    this.fallingHeartSound.play();
 
     // Disable platform collision, full gravity for the fall
     this.spinPlat.body.enable = false;
