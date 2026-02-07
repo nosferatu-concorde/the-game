@@ -48,6 +48,10 @@ export class GameScene extends Phaser.Scene {
     this.load.audio("item_pickup", "item-pickup.mp3");
     this.load.audio("fairy", "fairy-sparkle.mp3");
     this.load.audio("munching", "munching.mp3");
+    this.load.audio("robot_step1", "robot_step1.wav");
+    this.load.audio("robot_step2", "robot_step2.wav");
+    this.load.audio("robot_step3", "robot_step3.wav");
+    this.load.audio("robot_step4", "robot_step4.wav");
     this.load.audio("impact", "impact.mp3");
 
     // Pre-generate robot blood particle texture
@@ -105,6 +109,13 @@ export class GameScene extends Phaser.Scene {
     this.itemPickupSound = this.sound.add("item_pickup");
     this.fairySound = this.sound.add("fairy");
     this.munchingSound = this.sound.add("munching");
+    this.robotSteps = [
+      this.sound.add("robot_step1"),
+      this.sound.add("robot_step2"),
+      this.sound.add("robot_step3"),
+      this.sound.add("robot_step4"),
+    ];
+    this.robotStepCooldown = 0;
 
     const LEVELS = {
       1: LEVEL_1,
@@ -499,6 +510,14 @@ export class GameScene extends Phaser.Scene {
 
     this.wasGrounded = this.player.sprite.body.blocked.down;
     this.player.update(time, delta);
+
+    // Robot step sounds when player is moving on ground
+    this.robotStepCooldown -= delta;
+    if (this.wasGrounded && Math.abs(this.player.sprite.body.velocity.x) > 10 && this.robotStepCooldown <= 0) {
+      const step = Phaser.Math.RND.pick(this.robotSteps);
+      step.play({ volume: 0.35 });
+      this.robotStepCooldown = 250;
+    }
     for (const enemy of this.enemies) {
       enemy.update(delta);
     }
@@ -601,7 +620,7 @@ export class GameScene extends Phaser.Scene {
   _playerSawDie(sawSprite) {
     if (this.isDead || this.goalReached) return;
     this.isDead = true;
-    this.sawSound.play();
+    this.sawSound.play({ volume: 0.5, detune: -300 });
     this.time.delayedCall(800, () => this.impactSound.play());
     this.physics.pause();
     this.sawDeath = sawSprite;
