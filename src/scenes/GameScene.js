@@ -20,6 +20,7 @@ export class GameScene extends Phaser.Scene {
   preload() {
     this.load.image("goal", "goal.png");
     this.load.image("saw", "saw.png");
+    this.load.image("player", "player.png");
   }
 
   init(data) {

@@ -89,7 +89,7 @@ export class SpeechBubble {
 
   update(delta) {
     const x = this.target.x;
-    const y = this.target.y - this.target.height / 2 - TAIL_SIZE - 4;
+    const y = this.target.y - this.target.displayHeight * this.target.originY - TAIL_SIZE - 4;
 
     this.deltaX = x - this.prevX;
     this.prevX = x;

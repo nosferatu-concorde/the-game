@@ -1,16 +1,16 @@
 import Phaser from "phaser";
 import { SpeechBubble } from "../ui/SpeechBubble.js";
-import { COLORS, STROKE_WIDTH } from "../constants/styles.js";
 
-const WIDTH = 32;
-const HEIGHT = 48;
+const WIDTH = 44;
+const HEIGHT = 126;
 const MOVE_SPEED = 360;
 const JUMP_VELOCITY = -700;
 const COYOTE_TIME = 100; // ms after leaving ground where jump is still allowed
 const IDLE_DELAY = 1000; // ms before idle starts
 const IDLE_FRAME_DURATION = 400; // ms per frame
-const SQUISH_WIDTH = WIDTH + 2;
-const SQUISH_HEIGHT = HEIGHT - 4;
+const LEAN_ANGLE = 0.28; // ~10 degrees
+const LEAN_SPEED = 8; // lerp speed
+
 
 export class Player {
   constructor(scene, x, y) {
@@ -22,8 +22,8 @@ export class Player {
     this.idleAnimTimer = 0;
     this.idleFrame = 0;
 
-    this.sprite = scene.add.rectangle(x, y, WIDTH, HEIGHT, COLORS.STROKE);
-    this.sprite.setStrokeStyle(STROKE_WIDTH, COLORS.STROKE);
+    this.sprite = scene.add.image(x, y, "player");
+    this.sprite.setOrigin(0.5, 1);
     scene.physics.add.existing(this.sprite);
     this.sprite.body.setCollideWorldBounds(true);
 
@@ -43,13 +43,21 @@ export class Player {
   update(time, delta) {
     const body = this.sprite.body;
 
+    let targetLean = 0;
     if (this.cursors.left.isDown || this.keys.a.isDown) {
       body.setVelocityX(-MOVE_SPEED);
+      this.sprite.setFlipX(true);
+      targetLean = -LEAN_ANGLE;
     } else if (this.cursors.right.isDown || this.keys.d.isDown) {
       body.setVelocityX(MOVE_SPEED);
+      this.sprite.setFlipX(false);
+      targetLean = LEAN_ANGLE;
     } else {
       body.setVelocityX(0);
     }
+
+    const t = Math.min(1, LEAN_SPEED * delta / 1000);
+    this.sprite.rotation += (targetLean - this.sprite.rotation) * t;
 
     const dropPressed = this.cursors.down.isDown || this.keys.s.isDown;
     if (dropPressed && body.blocked.down) {
@@ -91,28 +99,20 @@ export class Player {
       this.bubble.setText("IF (idle)\n  start.idling()");
     }
 
-    // Idle squish animation
     if (this.idle) {
       this.idleAnimTimer += delta;
       const newFrame = Math.floor(this.idleAnimTimer / IDLE_FRAME_DURATION) % 2;
       if (newFrame !== this.idleFrame) {
         this.idleFrame = newFrame;
+        const baseScale = 1;
         if (this.idleFrame === 1) {
-          this.sprite.setSize(SQUISH_WIDTH, SQUISH_HEIGHT);
-          this.sprite.y += (HEIGHT - SQUISH_HEIGHT) / 2;
-          body.setSize(SQUISH_WIDTH, SQUISH_HEIGHT);
+          this.sprite.setScale(baseScale + 4 / this.sprite.width, baseScale - 4 / this.sprite.height);
         } else {
-          this.sprite.y -= (HEIGHT - SQUISH_HEIGHT) / 2;
-          this.sprite.setSize(WIDTH, HEIGHT);
-          body.setSize(WIDTH, HEIGHT);
+          this.sprite.setScale(baseScale);
         }
       }
     } else if (wasIdle) {
-      if (this.idleFrame === 1) {
-        this.sprite.y -= (HEIGHT - SQUISH_HEIGHT) / 2;
-      }
-      this.sprite.setSize(WIDTH, HEIGHT);
-      body.setSize(WIDTH, HEIGHT);
+      this.sprite.setScale(1);
       this.idleAnimTimer = 0;
       this.idleFrame = 0;
     }
