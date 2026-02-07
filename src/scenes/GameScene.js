@@ -503,7 +503,7 @@ export class GameScene extends Phaser.Scene {
       this.player.sprite.rotation = t * Math.PI * 2;
 
       if (this.goalCelebrationTimer <= 0) {
-        if (this.currentLevel === 5) {
+        if (this.currentLevel === 7) {
           this._showHalfwayMessage(HALFWAY_MESSAGE);
         } else if (this.currentLevel === 10) {
           this._showHalfwayMessage(END_MESSAGE);

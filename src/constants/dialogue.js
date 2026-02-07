@@ -15,7 +15,7 @@ export const TITLE_PROMPT =
   "/* Traditional anti-intelligence with IF and Else */\n/* Press SPACE to begin */";
 // Halfway screen (after level 5)
 export const HALFWAY_MESSAGE =
-  "Well done, you are halfway through the game.\nI never made it past this point.\nUncharted territory! Best of luck!";
+  "Well done, you are halfway through the game.\nI never made it past this point.\nPossibly impossible!";
 
 // End screen (after level 10)
 export const END_MESSAGE =
