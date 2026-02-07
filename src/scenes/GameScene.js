@@ -186,7 +186,7 @@ export class GameScene extends Phaser.Scene {
 
     // Player bumps spinning platform from below
     this.physics.add.collider(this.player.sprite, this.spinPlat, () => {
-      if (this.player.sprite.body.velocity.y < 0 && !this.spinActivated) {
+      if (this.player.sprite.body.velocity.y < 0 && !this.spinActivated && this.player.sprite.body.blocked.up) {
         this._activateSpinPlatform();
       }
       if (!this.wasGrounded) {
