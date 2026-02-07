@@ -92,6 +92,17 @@ export class Enemy {
       }
     }
 
+    // Clamp to patrol bounds so enemies don't walk off platforms
+    if (this.sprite.x <= this.patrolMin) {
+      this.sprite.x = this.patrolMin;
+      body.setVelocityX(Math.abs(body.velocity.x));
+      newDirection = "right";
+    } else if (this.sprite.x >= this.patrolMax) {
+      this.sprite.x = this.patrolMax;
+      body.setVelocityX(-Math.abs(body.velocity.x));
+      newDirection = "left";
+    }
+
     if (
       newDirection !== this.direction ||
       wasChasing !== this.chasing ||
