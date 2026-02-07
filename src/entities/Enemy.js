@@ -105,12 +105,8 @@ export class Enemy {
       newDirection = "left";
     }
 
-    if (
-      newDirection !== this.direction ||
-      wasChasing !== this.chasing ||
-      wasTouching !== this.touching
-    ) {
-      this.direction = newDirection;
+    this.direction = newDirection;
+    if (wasChasing !== this.chasing || wasTouching !== this.touching) {
       this.bubble.setLooping(this._getBubbleText(), 2000);
     }
 
