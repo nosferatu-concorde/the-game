@@ -23,6 +23,15 @@ void main() {
     float scanline = 0.904 + 0.096 * step(0.5, fract(pixelY / 4.0));
     color *= scanline;
 
+    // Saturation boost - make colors pop
+    float gray = dot(color, vec3(0.299, 0.587, 0.114));
+    color = mix(vec3(gray), color, 1.4);
+
+    // Contrast boost + crush darks + lift lights
+    color = (color - 0.5) * 1.15 + 0.5;
+    color = pow(color, vec3(1.15));
+    color = mix(color, smoothstep(0.0, 1.0, color), 0.2);
+
     // Vignette - darken corners
     vec2 vig = uv * (1.0 - uv);
     float vignette = pow(vig.x * vig.y * 10.0, 0.4);
