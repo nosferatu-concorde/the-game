@@ -12,6 +12,7 @@ import {
 import { COLORS, STROKE_WIDTH } from "../constants/styles.js";
 import { LEVEL_1, LEVEL_2 } from "../constants/levels.js";
 import { SpeechBubble } from "../ui/SpeechBubble.js";
+import { zoomTo, zoomReset } from "../utils/cameraZoom.js";
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -377,9 +378,7 @@ export class GameScene extends Phaser.Scene {
     this.sawParticles.setDepth(5);
     this.sawDeath.setDepth(20);
 
-    const cam = this.cameras.main;
-    cam.pan(sawSprite.x, sawSprite.y, 800, "Sine.easeInOut");
-    cam.zoomTo(3, 800, "Sine.easeInOut");
+    zoomTo(this.cameras.main, sawSprite.x, sawSprite.y);
 
     for (const bubble of this.allBubbles) {
       bubble._setVisible(false);
@@ -396,10 +395,7 @@ export class GameScene extends Phaser.Scene {
     this.sawDeath = null;
     this.physics.pause();
 
-    const cam = this.cameras.main;
-    cam.stopFollow();
-    cam.pan(CENTER_X, CENTER_Y, 0);
-    cam.zoomTo(1, 0);
+    zoomReset(this.cameras.main);
 
     const overlay = this.add.rectangle(
       CENTER_X,
