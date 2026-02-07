@@ -46,6 +46,7 @@ export class GameScene extends Phaser.Scene {
     this.load.audio("error", "error.mp3");
     this.load.audio("falling_heart", "falling-heart.mp3");
     this.load.audio("item_pickup", "item-pickup.mp3");
+    this.load.audio("fairy", "fairy-sparkle.mp3");
     this.load.audio("impact", "impact.mp3");
 
     // Pre-generate robot blood particle texture
@@ -99,6 +100,7 @@ export class GameScene extends Phaser.Scene {
     this.errorSound = this.sound.add("error");
     this.fallingHeartSound = this.sound.add("falling_heart");
     this.itemPickupSound = this.sound.add("item_pickup");
+    this.fairySound = this.sound.add("fairy");
 
     const LEVELS = {
       1: LEVEL_1,
@@ -667,6 +669,7 @@ export class GameScene extends Phaser.Scene {
 
   _levelComplete() {
     this.itemPickupSound.play();
+    this.fairySound.play();
     this.physics.pause();
     this.goalCelebrationTimer = 1000;
     this.player.sprite.setDepth(25);
