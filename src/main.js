@@ -3,9 +3,10 @@ import { TitleScene } from "./scenes/TitleScene.js";
 import { GameScene } from "./scenes/GameScene.js";
 
 import { GAME_WIDTH, GAME_HEIGHT, GRAVITY } from "./constants/config.js";
+import { CRTPipeline } from "./shaders/CRTPipeline.js";
 
 const config = {
-  type: Phaser.AUTO,
+  type: Phaser.WEBGL,
   width: GAME_WIDTH,
   height: GAME_HEIGHT,
   backgroundColor: "#FFFDCA",
@@ -25,6 +26,7 @@ const config = {
       debug: false,
     },
   },
+  pipeline: [CRTPipeline],
   scene: [TitleScene, GameScene],
 };
 

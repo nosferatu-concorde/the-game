@@ -6,7 +6,9 @@
       "Bash(npm run dev:*)",
       "Bash(identify:*)",
       "Bash(python3:*)",
-      "Bash(sips:*)"
+      "Bash(sips:*)",
+      "Bash(node -e:*)",
+      "WebSearch"
     ]
   }
 }

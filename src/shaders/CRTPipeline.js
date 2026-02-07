@@ -13,14 +13,14 @@ void main() {
     vec2 uv = outTexCoord;
 
     // Chromatic aberration (2 lookups instead of 3)
-    float offset = 0.0010;
+    float offset = 0.0005;
     vec4 center = texture2D(uMainSampler, uv);
     float r = texture2D(uMainSampler, vec2(uv.x + offset, uv.y)).r;
     vec3 color = vec3(r, center.g, center.b);
 
-    // Scanlines - multiply to darken every other line (visible on white)
+    // Scanlines - wide dark bands with gaps
     float pixelY = uv.y * uResolution.y;
-    float scanline = 0.92 + 0.08 * sin(pixelY * 1.5);
+    float scanline = 0.904 + 0.096 * step(0.5, fract(pixelY / 4.0));
     color *= scanline;
 
 

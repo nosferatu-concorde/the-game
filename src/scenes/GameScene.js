@@ -13,6 +13,7 @@ import { COLORS, STROKE_WIDTH } from "../constants/styles.js";
 import { LEVEL_1, LEVEL_2 } from "../constants/levels.js";
 import { SpeechBubble } from "../ui/SpeechBubble.js";
 import { zoomTo, zoomReset } from "../utils/cameraZoom.js";
+import { CRTPipeline } from "../shaders/CRTPipeline.js";
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -51,8 +52,9 @@ export class GameScene extends Phaser.Scene {
     const LEVELS = { 1: LEVEL_1, 2: LEVEL_2 };
     const levelData = LEVELS[this.currentLevel] || LEVEL_1;
 
-    // White background (needed for PostFX pipeline)
+    // Background (needed for PostFX pipeline)
     this.add.rectangle(CENTER_X, CENTER_Y, GAME_WIDTH, GAME_HEIGHT, COLORS.BG);
+    this.cameras.main.setPostPipeline(CRTPipeline);
 
     // Ground (always solid)
     const ground = this.add.image(CENTER_X, GAME_HEIGHT, "ground").setOrigin(0.5, 1);
