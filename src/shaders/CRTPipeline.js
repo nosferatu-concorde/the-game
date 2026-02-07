@@ -21,7 +21,7 @@ void main() {
 
     // Scanlines - multiply to darken every other line (visible on white)
     float pixelY = uv.y * uResolution.y;
-    float scanline = 0.92 + 0.08 * sin(pixelY * 3.14159);
+    float scanline = 0.92 + 0.08 * sin(pixelY * 1.5);
     color *= scanline;
 
 
