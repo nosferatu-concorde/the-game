@@ -33,7 +33,8 @@ export class Enemy {
     });
     this.indicator.setOrigin(0.5, 0.5);
 
-    this.bubble = new SpeechBubble(scene, this.sprite, this._getBubbleText());
+    this.bubble = new SpeechBubble(scene, this.sprite);
+    this.bubble.setLooping(this._getBubbleText(), 2000);
   }
 
   setPlayer(player) {
@@ -108,7 +109,7 @@ export class Enemy {
     ) {
       this.direction = newDirection;
       this.indicator.setText(this.direction === "right" ? ">" : "<");
-      this.bubble.setText(this._getBubbleText());
+      this.bubble.setLooping(this._getBubbleText(), 2000);
     }
 
     // Spin when chasing, reset when patrolling
