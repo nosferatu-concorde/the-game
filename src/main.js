@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { TitleScene } from "./scenes/TitleScene.js";
+import { TutorialScene } from "./scenes/TutorialScene.js";
 import { GameScene } from "./scenes/GameScene.js";
 
 import { GAME_WIDTH, GAME_HEIGHT, GRAVITY } from "./constants/config.js";
@@ -30,7 +31,7 @@ const config = {
     disableWebAudio: false,
   },
   pipeline: [CRTPipeline],
-  scene: [TitleScene, GameScene],
+  scene: [TitleScene, TutorialScene, GameScene],
 };
 
 new Phaser.Game(config);
