@@ -26,7 +26,7 @@ import { SpeechBubble } from "../ui/SpeechBubble.js";
 import { zoomTo, zoomReset } from "../utils/cameraZoom.js";
 import { CRTPipeline } from "../shaders/CRTPipeline.js";
 import { particleBurst } from "../utils/particleBurst.js";
-import { SAW_LOOP, DEATH_TEXT, HALFWAY_MESSAGE, END_MESSAGE } from "../constants/dialogue.js";
+import { SAW_LOOP, DEATH_TEXT, HALFWAY_MESSAGE, END_MESSAGE, HINT_IDLE_BUBBLE } from "../constants/dialogue.js";
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -105,6 +105,9 @@ export class GameScene extends Phaser.Scene {
     this.sawDeathTimer = 0;
     this.chaseShakeCooldown = 0;
     this.halfwayWaiting = false;
+    this.spinTouchCount = 0;
+    this.spinTouching = false;
+    this.hintShown = false;
     this.sawSound = this.sound.add("saw_sfx");
     this.impactSound = this.sound.add("impact");
     this.errorSound = this.sound.add("error");
@@ -235,6 +238,14 @@ export class GameScene extends Phaser.Scene {
       }
       if (!this.wasGrounded) {
         this._platformBounce(this.spinPlat);
+      }
+      // Track touches for level 1 hint
+      if (this.currentLevel === 1 && !this.spinTouching && !this.hintShown) {
+        this.spinTouching = true;
+        this.spinTouchCount++;
+        if (this.spinTouchCount >= 3) {
+          this._showIdleHint();
+        }
       }
     });
 
@@ -512,6 +523,11 @@ export class GameScene extends Phaser.Scene {
         }
       }
       return;
+    }
+
+    // Reset spin platform touch tracking when not colliding
+    if (this.spinTouching && !this.player.sprite.body.touching.up && !this.player.sprite.body.blocked.up) {
+      this.spinTouching = false;
     }
 
     this.wasGrounded = this.player.sprite.body.blocked.down;
@@ -856,6 +872,26 @@ export class GameScene extends Phaser.Scene {
       onComplete: () => {
         plat._bouncing = false;
       },
+    });
+  }
+
+  _showIdleHint() {
+    if (this.hintShown) return;
+    this.hintShown = true;
+    const sp = this.spinPlat;
+    this.hintText = this.add.text(sp.x, sp.y + 30, HINT_IDLE_BUBBLE, {
+      fontFamily: "monospace",
+      fontSize: "12px",
+      color: "#000000",
+      align: "center",
+    });
+    this.hintText.setOrigin(0.5, 0);
+    this.hintText.setDepth(15);
+    this.hintText.setAlpha(0);
+    this.tweens.add({
+      targets: this.hintText,
+      alpha: 1,
+      duration: 500,
     });
   }
 

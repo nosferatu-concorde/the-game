@@ -26,5 +26,8 @@ export const TUTORIAL_HEADER = "// HOW TO PLAY";
 export const TUTORIAL_ELEMENTS_HEADER = "// WATCH OUT";
 export const TUTORIAL_PROMPT = "/* Press SPACE to begin */";
 
+// Hints
+export const HINT_IDLE_BUBBLE = "// can't reach the platform?\n// Use the idle bubble for reach.";
+
 // Game over
 export const DEATH_TEXT = "IF DEATH DEAD";
