@@ -21,5 +21,10 @@ export const HALFWAY_MESSAGE =
 export const END_MESSAGE =
   "You made it! Congrats!\nTHANK YOU FOR PLAYING and THANK YOU TO SUPERCELL for the game Jam!";
 
+// Tutorial screen
+export const TUTORIAL_HEADER = "// HOW TO PLAY";
+export const TUTORIAL_ELEMENTS_HEADER = "// WATCH OUT";
+export const TUTORIAL_PROMPT = "/* Press SPACE to begin */";
+
 // Game over
 export const DEATH_TEXT = "IF DEATH DEAD";
